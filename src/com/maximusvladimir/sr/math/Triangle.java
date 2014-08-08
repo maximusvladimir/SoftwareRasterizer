@@ -1,5 +1,6 @@
 package com.maximusvladimir.sr.math;
 
+import com.maximusvladimir.sr.DisplayList;
 import com.maximusvladimir.sr.Normal;
 import com.maximusvladimir.sr.Point3D;
 import com.maximusvladimir.sr.RGB;
@@ -12,4 +13,6 @@ public class Triangle {
 	public RGB c1,c2,c3;
 	public Normal n1,n2,n3;
 	public Texture t;
+	public Matrix mvp;
+	public DisplayList list;
 }

@@ -1,5 +1,9 @@
 package com.maximusvladimir.sr;
 
+import java.awt.Color;
+
+import com.maximusvladimir.sr.math.Display;
+
 public class RGB extends Operation {
 	public static final RGB AliceBlue = new RGB(240, 248, 255);
 	public static final RGB AntiqueWhite = new RGB(250, 235, 215);
@@ -141,7 +145,8 @@ public class RGB extends Operation {
 	public static final RGB WhiteSmoke = new RGB(245, 245, 245);
 	public static final RGB Yellow = new RGB(255, 255, 0);
 	public static final RGB YellowGreen = new RGB(154, 205, 50);
-	private int rgb = 0;
+	protected int rgb = 0;
+	protected boolean _isTransparent = false;
 
 	public RGB() {
 		id = 1;
@@ -151,10 +156,22 @@ public class RGB extends Operation {
 		id = 1;
 		this.rgb = rgb;
 	}
+	
+	public RGB(RGBA down) {
+		this(down.r(),down.g(),down.b());
+	}
 
 	public RGB(int r, int g, int b) {
 		id = 1;
 		rgb = (r << 16) | (g << 8) | b;
+	}
+	
+	public Color asJavaAwtColor() {
+		return new Color(rgb());
+	}
+	
+	public boolean isTransparent() {
+		return _isTransparent;
 	}
 
 	public int r() {
@@ -171,6 +188,17 @@ public class RGB extends Operation {
 
 	public int rgb() {
 		return rgb;
+	}
+	
+	public static RGB lerp(RGB c1, RGB c2, float amount) {
+		if (c1 == null)
+			c1 = RGB.White;
+		if (c2 == null)
+			c2 = RGB.White;
+		int r = (int)Display.lerp(c1.r(), c2.r(), amount);
+		int g = (int)Display.lerp(c1.g(), c2.g(), amount);
+		int b = (int)Display.lerp(c1.b(), c2.b(), amount);
+		return new RGB(r,g,b);
 	}
 	
 	public static RGB add(RGB c1, RGB c2) {

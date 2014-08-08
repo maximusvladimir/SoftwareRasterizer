@@ -44,31 +44,31 @@ public class Texture extends Operation {
 		return _wrap;
 	}
 	
-	RGB map(TextureCoord coord) {
-		return map(coord.u(),coord._v());
+	RGB lookup(TextureCoord coord) {
+		return lookup(coord.u(),coord._v());
 	}
 	
-	RGB map(float u, float v) {
+	RGB lookup(float u, float v) {
 		if (_texture == null)
 			return RGB.Black;
 		if (getTextureFilter() == TextureFilter.Linear) {
-			RGB sample = internalMap(u,v);
-			RGB sample1 = internalMap(u - _unitX,v);
-			RGB sample2 = internalMap(u + _unitX,v);
-			RGB sample3 = internalMap(u,v - _unitY);
-			RGB sample4 = internalMap(u,v + _unitY);
+			RGB sample = internalLookup(u,v);
+			RGB sample1 = internalLookup(u - _unitX,v);
+			RGB sample2 = internalLookup(u + _unitX,v);
+			RGB sample3 = internalLookup(u,v - _unitY);
+			RGB sample4 = internalLookup(u,v + _unitY);
 			RGB avg = RGB.avg(sample,sample1,sample2,sample3,sample4);
 			return avg;
 		}
 		else{
-			RGB c = internalMap(u,v);
+			RGB c = internalLookup(u,v);
 			if (c == null)
 				c = RGB.Black;
 			return c;
 		}
 	}
 	
-	private RGB internalMap(float u, float v) {
+	private RGB internalLookup(float u, float v) {
 		int pixx = (int)(u * _w);
 		int pixy = (int)(v * _h);
 		if (pixx > _w - 1) {

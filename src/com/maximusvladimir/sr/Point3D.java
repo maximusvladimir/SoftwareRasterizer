@@ -21,6 +21,10 @@ public class Point3D extends Operation {
 		this.z = z;
 		id = 0;
 	}
+	
+	public String toString() {
+		return "(" + x + "," + y + "," + z + ")";
+	}
 
 	public float length() {
 		return (float) Math.sqrt((x * x) + (y * y) + (z * z));
@@ -44,7 +48,7 @@ public class Point3D extends Operation {
 		}
 	}
 
-	public Point3D convertTo2D(Matrix mvp) {
+	public Point3D convertTo2D(Matrix mvp,float wi, float he) {
 		Point3D vector = new Point3D();
 		Matrix transform = mvp;
 		vector.x = (x * transform.M11) + (y * transform.M21)
@@ -56,8 +60,8 @@ public class Point3D extends Operation {
 		float w = 1f / ((x * transform.M14) + (y * transform.M24)
 				+ (z * transform.M34) + transform.M44);
 		Point3D point = new Point3D(x * w, y * w, vector.z * w);
-		float x = point.x * mvp.Width + mvp.Width / 2.0f;
-		float y = -point.y * mvp.Height + mvp.Height / 2.0f;
+		float x = point.x * wi + wi / 2.0f;
+		float y = -point.y * he + he / 2.0f;
 		return new Point3D(x, y, point.z);
 	}
 

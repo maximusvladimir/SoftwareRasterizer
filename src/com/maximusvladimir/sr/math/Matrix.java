@@ -1,8 +1,9 @@
 package com.maximusvladimir.sr.math;
 
+import com.maximusvladimir.sr.Operation;
 import com.maximusvladimir.sr.Point3D;
 
-public class Matrix {
+public class Matrix extends Operation {
 	public float M11 = 0;
 	public float M12 = 0;
 	public float M13 = 0;
@@ -22,9 +23,12 @@ public class Matrix {
 	
 	public float Width = -1;
 	public float Height = -1;
+	
+	public float Znear = 0;
+	public float Zfar = 0;
 
 	public Matrix() {
-
+		id = 5;
 	}
 
 	public static Matrix createIdentity() {
@@ -64,10 +68,27 @@ public class Matrix {
         temp.M42 = (left.M41 * right.M12) + (left.M42 * right.M22) + (left.M43 * right.M32) + (left.M44 * right.M42);
         temp.M43 = (left.M41 * right.M13) + (left.M42 * right.M23) + (left.M43 * right.M33) + (left.M44 * right.M43);
         temp.M44 = (left.M41 * right.M14) + (left.M42 * right.M24) + (left.M43 * right.M34) + (left.M44 * right.M44);
-        return result;
+        return temp;
+	}
+	
+	public String toString() {
+		return String.format("[M11:%s M12:%s M13:%s M14:%s]\n[M21:%s M22:%s M23:%s M24:%s]\n[M31:%s M32:%s M33:%s M34:%s]\n[M41:%s M42:%s M43:%s M44:%s]",
+                M11, M12, M13, M14, M21, M22, M23, M24, M31, M32, M33, M34, M41, M42, M43, M44);
+	}
+	
+	public void setToTranslation(Point3D t) {
+		M11 = 1.0f;
+		M22 = 1.0f;
+		M33 = 1.0f;
+		M44 = 1.0f;
+		M41 = t.x;
+        M42 = t.y;
+        M43 = t.z;
 	}
 	
 	public void setToPerspective(float width, float height, float znear, float zfar) {
+		Zfar = zfar;
+		Znear = znear;
 		Width = width;
 		Height = height;
 		float halfWidth = width * 0.5f;
@@ -88,18 +109,21 @@ public class Matrix {
 		Point3D x = Point3D.cross(up, z);
 		x.normalize();
 		Point3D y = Point3D.cross(z, x);
-		Matrix result = Matrix.createIdentity();
-		result.M11 = x.x;
-		result.M21 = x.y;
-		result.M31 = x.z;
-		result.M12 = y.x;
-		result.M22 = y.y;
-		result.M32 = y.z;
-		result.M13 = z.x;
-		result.M23 = z.y;
-		result.M33 = z.z;
-		result.M41 = -Point3D.dot(x, position);
-		result.M42 = -Point3D.dot(y, position);
-		result.M43 = -Point3D.dot(z, position);
+		M11 = 1.0f;
+		M22 = 1.0f;
+		M33 = 1.0f;
+		M44 = 1.0f;
+		M11 = x.x;
+		M21 = x.y;
+		M31 = x.z;
+		M12 = y.x;
+		M22 = y.y;
+		M32 = y.z;
+		M13 = z.x;
+		M23 = z.y;
+		M33 = z.z;
+		M41 = -Point3D.dot(x, position);
+		M42 = -Point3D.dot(y, position);
+		M43 = -Point3D.dot(z, position);
 	}
 }

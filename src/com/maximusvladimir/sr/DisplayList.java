@@ -3,13 +3,23 @@ package com.maximusvladimir.sr;
 import java.util.ArrayList;
 
 import com.maximusvladimir.sr.math.Display;
+import com.maximusvladimir.sr.math.Matrix;
 import com.maximusvladimir.sr.math.Triangle;
 
-public class DisplayList {
+public class DisplayList extends Operation {
 	private ArrayList<Operation> _operations = new ArrayList<Operation>();
 	private ArrayList<Triangle> _triangles = new ArrayList<Triangle>();
+	private Matrix _model;
 	DisplayList() {
-		
+		id = 6;
+	}
+	
+	public void setModelMatrix(Matrix model) {
+		_model = model;
+	}
+	
+	public Matrix getModelMatrix() {
+		return _model;
 	}
 	
 	public void normal(float x, float y, float z) {
@@ -50,7 +60,9 @@ public class DisplayList {
 	
 	public void build() {
 		Display.convertOperationsToTriangles(_operations, _triangles);
+		for (int i = 0; i < _triangles.size(); i++) {
+			_triangles.get(i).list = this;
+		}
 		_operations.clear();
-		// TODO convert operations into triangles
 	}
 }
