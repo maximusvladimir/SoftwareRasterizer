@@ -5,6 +5,8 @@ import javax.swing.JFrame;
 import com.maximusvladimir.sr.Component3D;
 import com.maximusvladimir.sr.GL;
 import com.maximusvladimir.sr.Point3D;
+import com.maximusvladimir.sr.RGB;
+import com.maximusvladimir.sr.flags.DepthMode;
 import com.maximusvladimir.sr.flags.PolygonMode;
 import com.maximusvladimir.sr.math.Matrix;
 
@@ -36,6 +38,7 @@ public class Test extends JFrame {
 		c.getGL().setViewMatrix(viewMatrix);
 		c.getGL().setProjectionMatrix(projectionMatrix);
 		c.getGL().setPolygonMode(PolygonMode.Fill);
+		c.getGL().setDepthMode(DepthMode.PerUnit);
 
 		c.setDrawLoop(new Runnable() {
 			float t = 0;
@@ -44,7 +47,7 @@ public class Test extends JFrame {
 				Matrix model = new Matrix();
 				model.setToTranslation(Point3D.Zero);
 				float s = (float)(Math.cos(t)) * 2;
-				t += 0.1f;
+				t += 0.04f;
 				
 				gl.modelMatrix(model);
 				gl.color(255, 0, 0);
@@ -53,6 +56,27 @@ public class Test extends JFrame {
 				gl.vertex(-1, 1, s);
 				gl.color(0, 0, 255);
 				gl.vertex(0, -4, 10);
+				
+				gl.color(255, 0, 255);
+				gl.vertex(4, 1, 16);
+				gl.color(255, 255, 0);
+				gl.vertex(6, 1, 16);
+				gl.color(0, 255, 255);
+				gl.vertex(5, -1, 16);
+				
+				gl.color(RGB.getPresetRandomColor());
+				gl.vertex(-4, 1, 26);
+				gl.color(RGB.getPresetRandomColor());
+				gl.vertex(-6, 1, 26);
+				gl.color(RGB.getPresetRandomColor());
+				gl.vertex(-5, -1, 26);
+				
+				gl.color(RGB.Aqua);
+				gl.vertex(0.5f,0.5f,5);
+				gl.color(RGB.DarkGoldenrod);
+				gl.vertex(-0.5f,0.5f,5);
+				gl.color(RGB.CadetBlue);
+				gl.vertex(0,-1,12);
 			}
 		});
 	}

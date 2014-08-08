@@ -15,4 +15,8 @@ public class Triangle {
 	public Texture t;
 	public Matrix mvp;
 	public DisplayList list;
+	
+	public String toString() {
+		return "Points: {"+ p1 + " " + p2 + " " + p3 +"} Colors: {" + c1 + " " + c2 + " " + c3 + "}";
+	}
 }

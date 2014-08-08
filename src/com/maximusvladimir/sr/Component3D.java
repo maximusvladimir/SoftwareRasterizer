@@ -171,7 +171,6 @@ public class Component3D extends Component {
 			h++;
 		_buffer = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
 		_bufferData = new ImageData();
-		_bufferData.doDepth = true;
 		_bufferData.w = _buffer.getWidth();
 		_bufferData.h = _buffer.getHeight();
 		_bufferData.g = _buffer.getGraphics();

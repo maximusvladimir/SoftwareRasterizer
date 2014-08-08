@@ -12,6 +12,7 @@ import com.maximusvladimir.sr.RGB;
 import com.maximusvladimir.sr.RGBA;
 import com.maximusvladimir.sr.Texture;
 import com.maximusvladimir.sr.TextureCoord;
+import com.maximusvladimir.sr.flags.DepthMode;
 
 public class Display {
 	public static final float lerp(float a, float b, float c) {
@@ -26,6 +27,7 @@ public class Display {
 			c = data.lastGoodColor;
 		int x = (int) p.x;
 		int y = (int) p.y;
+		// Manually setting the pixels, is faster, until you reach about 4x4 sizes.
 		if (size == 1)
 			data.setPixel(x, y, c);
 		else if (size == 2) {
@@ -214,7 +216,7 @@ public class Display {
 			colorSlopeBlue1 = colorSlopeBlue2;
 			colorSlopeBlue2 = slopeTmp;
 
-			if (img.doDepth) {
+			if (img.depthMode == DepthMode.PerPixel) {
 				slopeTmp = colorSlopeDepth1;
 				colorSlopeDepth1 = colorSlopeDepth2;
 				colorSlopeDepth2 = slopeTmp;
@@ -226,12 +228,12 @@ public class Display {
 			cRed1 -= colorSlopeRed1;
 			cGreen1 -= colorSlopeGreen1;
 			cBlue1 -= colorSlopeBlue1;
-			if (img.doDepth)
+			if (img.depthMode == DepthMode.PerPixel)
 				cDepth1 -= colorSlopeDepth1;
 			cRed2 -= colorSlopeRed2;
 			cGreen2 -= colorSlopeGreen2;
 			cBlue2 -= colorSlopeBlue2;
-			if (img.doDepth)
+			if (img.depthMode == DepthMode.PerPixel)
 				cDepth2 -= colorSlopeDepth2;
 			if (y > img.h || y < 0)
 				continue;
@@ -252,7 +254,7 @@ public class Display {
 				int rc = (int) ((1 - t) * cRed1 + t * cRed2);
 				int gc = (int) ((1 - t) * cGreen1 + t * cGreen2);
 				int bc = (int) ((1 - t) * cBlue1 + t * cBlue2);
-				if (img.doDepth) {
+				if (img.depthMode == DepthMode.PerPixel) {
 					img.setPixel(xs, y, calculateDepth(img,((1 - t) * cDepth1 + t * cDepth2)), new RGB(rc, gc, bc));
 				}
 				img.setPixel(xs, y, 0, new RGB(rc, gc, bc));
@@ -266,7 +268,6 @@ public class Display {
 			Point3D v3, RGB c1, RGB c2, RGB c3) {
 		float slope1 = (float) (v2.x - v1.x) / (float) (v2.y - v1.y);
 		float slope2 = (float) (v3.x - v1.x) / (float) (v3.y - v1.y);
-
 		float x1 = v1.x;
 		float x2 = v1.x + 0.5f;
 		float v2v1Diff = 1.0f / (float) (v2.y - v1.y);
@@ -303,7 +304,7 @@ public class Display {
 			slopeTmp = colorSlopeBlue1;
 			colorSlopeBlue1 = colorSlopeBlue2;
 			colorSlopeBlue2 = slopeTmp;
-			if (img.doDepth) {
+			if (img.depthMode == DepthMode.PerPixel) {
 				slopeTmp = colorSlopeDepth1;
 				colorSlopeDepth1 = colorSlopeDepth2;
 				colorSlopeDepth2 = slopeTmp;
@@ -329,7 +330,7 @@ public class Display {
 				int rc = (int) ((1 - t) * cRed1 + t * cRed2);
 				int gc = (int) ((1 - t) * cGreen1 + t * cGreen2);
 				int bc = (int) ((1 - t) * cBlue1 + t * cBlue2);
-				if (img.doDepth) {
+				if (img.depthMode == DepthMode.PerPixel) {
 					img.setPixel(xs, y, calculateDepth(img,((1 - t) * cDepth1 + t * cDepth2)), new RGB(rc, gc, bc));
 				} else
 					img.setPixel(xs, y, 0, new RGB(rc, gc, bc));
@@ -343,7 +344,7 @@ public class Display {
 			cRed2 += colorSlopeRed2;
 			cGreen2 += colorSlopeGreen2;
 			cBlue2 += colorSlopeBlue2;
-			if (img.doDepth) {
+			if (img.depthMode == DepthMode.PerPixel) {
 				cDepth1 += colorSlopeDepth1;
 				cDepth2 += colorSlopeDepth2;
 			}

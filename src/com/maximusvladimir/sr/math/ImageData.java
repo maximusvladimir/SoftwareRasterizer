@@ -4,6 +4,7 @@ import java.awt.Graphics;
 
 import com.maximusvladimir.sr.RGB;
 import com.maximusvladimir.sr.RGBA;
+import com.maximusvladimir.sr.flags.DepthMode;
 
 public class ImageData {
 	public int[] data;
@@ -14,7 +15,7 @@ public class ImageData {
 	public RGB lastGoodColor;
 	public float znear;
 	public float zfar;
-	public boolean doDepth;
+	public DepthMode depthMode;
 	public void setPixel(int x, int y, RGB c) {
 		setPixel(x,y,0,c);
 	}
@@ -22,7 +23,7 @@ public class ImageData {
 		//System.out.println(z);
 		int div = y * w + x;
 		if (data != null && div > 0 && div < data.length - 1) {
-			c = RGB.lerp(RGB.Black,c,z/255.0f);
+			//c = RGB.lerp(RGB.Black,c,z/255.0f);
 			if (c == null) {
 				if (lastGoodColor.isTransparent())
 					data[div] = RGB.lerp(lastGoodColor, new RGB(data[div]), ((RGBA)lastGoodColor).a() / 255.0f).rgb();

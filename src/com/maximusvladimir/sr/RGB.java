@@ -1,6 +1,8 @@
 package com.maximusvladimir.sr;
 
 import java.awt.Color;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
 
 import com.maximusvladimir.sr.math.Display;
 
@@ -12,7 +14,7 @@ public class RGB extends Operation {
 	public static final RGB Azure = new RGB(240, 255, 255);
 	public static final RGB Beige = new RGB(245, 245, 220);
 	public static final RGB Bisque = new RGB(255, 228, 196);
-	public static final RGB Black = new RGB(0,0,0);
+	public static final RGB Black = new RGB(0, 0, 0);
 	public static final RGB BlanchedAlmond = new RGB(255, 235, 205);
 	public static final RGB Blue = new RGB(0, 0, 255);
 	public static final RGB BlueViolet = new RGB(138, 43, 226);
@@ -156,20 +158,41 @@ public class RGB extends Operation {
 		id = 1;
 		this.rgb = rgb;
 	}
-	
+
 	public RGB(RGBA down) {
-		this(down.r(),down.g(),down.b());
+		this(down.r(), down.g(), down.b());
 	}
 
 	public RGB(int r, int g, int b) {
 		id = 1;
 		rgb = (r << 16) | (g << 8) | b;
 	}
-	
+
+	private static ArrayList<RGB> _staticColors = null;
+	public static RGB getPresetRandomColor() {
+		if (_staticColors == null) {
+			_staticColors = new ArrayList<RGB>();
+			RGB context = new RGB();
+			Field[] fields = context.getClass().getDeclaredFields();
+			for (int i = 0; i < fields.length; i++) {
+				if (fields[i].getType().equals(context.getClass())) {
+					try {
+						_staticColors.add((RGB) fields[i].get(context));
+					} catch (IllegalArgumentException e) {
+						e.printStackTrace();
+					} catch (IllegalAccessException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+		return _staticColors.get((int)((_staticColors.size()-1)*Math.random()));
+	}
+
 	public Color asJavaAwtColor() {
 		return new Color(rgb());
 	}
-	
+
 	public boolean isTransparent() {
 		return _isTransparent;
 	}
@@ -189,39 +212,39 @@ public class RGB extends Operation {
 	public int rgb() {
 		return rgb;
 	}
-	
+
 	public static RGB lerp(RGB c1, RGB c2, float amount) {
 		if (c1 == null)
 			c1 = RGB.White;
 		if (c2 == null)
 			c2 = RGB.White;
-		int r = (int)Display.lerp(c1.r(), c2.r(), amount);
-		int g = (int)Display.lerp(c1.g(), c2.g(), amount);
-		int b = (int)Display.lerp(c1.b(), c2.b(), amount);
-		return new RGB(r,g,b);
+		int r = (int) Display.lerp(c1.r(), c2.r(), amount);
+		int g = (int) Display.lerp(c1.g(), c2.g(), amount);
+		int b = (int) Display.lerp(c1.b(), c2.b(), amount);
+		return new RGB(r, g, b);
 	}
-	
+
 	public static RGB add(RGB c1, RGB c2) {
 		int r = c1.r() + c2.r();
 		int g = c1.g() + c2.g();
 		int b = c1.b() + c2.b();
-		return new RGB(r,g,b);
+		return new RGB(r, g, b);
 	}
-	
+
 	public static RGB sub(RGB c1, RGB c2) {
 		int r = c1.r() - c2.r();
 		int g = c1.g() - c2.g();
 		int b = c1.b() - c2.b();
-		return new RGB(r,g,b);
+		return new RGB(r, g, b);
 	}
-	
+
 	public static RGB mul(RGB c, float a) {
 		float r = c.r() * a;
 		float g = c.g() * a;
 		float b = c.b() * a;
-		return new RGB((int)r,(int)g,(int)b);
+		return new RGB((int) r, (int) g, (int) b);
 	}
-	
+
 	public static RGB avg(RGB... c) {
 		int r = 0;
 		int g = 0;
@@ -237,7 +260,7 @@ public class RGB extends Operation {
 		}
 		if (l == 0)
 			return RGB.Black;
-		return new RGB((int)(r / l),(int)(g / l),(int)(b / l));
+		return new RGB((int) (r / l), (int) (g / l), (int) (b / l));
 	}
 
 	public String toString() {

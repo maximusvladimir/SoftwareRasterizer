@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.util.ArrayList;
 
+import com.maximusvladimir.sr.flags.DepthMode;
 import com.maximusvladimir.sr.flags.PolygonMode;
 import com.maximusvladimir.sr.math.Display;
 import com.maximusvladimir.sr.math.ImageData;
@@ -18,6 +19,7 @@ public class GL {
 	private Matrix _viewMatrix = new Matrix();
 	private Matrix _projectionMatrix = new Matrix();
 	private int _pointSize = 3;
+	private DepthMode _depthMode = DepthMode.PerPixel;
 
 	GL() {
 
@@ -27,8 +29,10 @@ public class GL {
 		img.znear = getProjectionMatrix().Znear;
 		img.zfar = getProjectionMatrix().Zfar;
 		img.lastGoodColor = RGB.White;
+		img.depthMode = getDepthMode();
 		Display.convertOperationsToTriangles(_operations, _triangles);
 		_operations.clear();
+		ArrayList<java.awt.Polygon> _depthPolygons = new ArrayList<java.awt.Polygon>();
 		for (int i = 0; i < _lists.size(); i++) {
 			_triangles.addAll(_lists.get(i).getData());
 		}
@@ -49,12 +53,20 @@ public class GL {
 					g.setColor(new Color(t.c1.rgb()));
 					img.lastGoodColor = t.c1;
 				}
-				/*java.awt.Polygon p = new java.awt.Polygon();
-				p.addPoint((int) p1.x, (int) p1.y);
-				p.addPoint((int) p2.x, (int) p2.y);
-				p.addPoint((int) p3.x, (int) p3.y);
-				g.fillPolygon(p);*/
+				float z = 0;
+				if (getDepthMode() == DepthMode.PerUnit) {
+					z = (p1.z + p2.z + p3.z) * 0.3333333333333333333f;
+				}
 				Display.DrawTriangle(img, p1, p2, p3, t.c1,t.c2,t.c3);
+				if (getDepthMode() == DepthMode.PerUnit) {
+					int c = Display.calculateDepth(img, z);
+					img.gz.setColor(new RGB(c,c,c).asJavaAwtColor());
+					java.awt.Polygon p = new java.awt.Polygon();
+					p.addPoint((int) p1.x, (int) p1.y);
+					p.addPoint((int) p2.x, (int) p2.y);
+					p.addPoint((int) p3.x, (int) p3.y);
+					img.gz.fillPolygon(p);
+				}
 				_lists.clear();
 			} else if (_polyMode == PolygonMode.Line) {
 				Display.drawLine(img, p1, p2, t.c1, t.c2);
@@ -70,6 +82,14 @@ public class GL {
 				Display.drawLerpLine(img, p1, p3, t.c1, t.c3);
 			}
 		}
+	}
+	
+	public void setDepthMode(DepthMode mode) {
+		_depthMode = mode;
+	}
+	
+	public DepthMode getDepthMode() {
+		return _depthMode;
 	}
 	
 	public void setPointSize(int s) {
