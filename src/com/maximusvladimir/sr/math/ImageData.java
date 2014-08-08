@@ -36,7 +36,8 @@ public class ImageData {
 					data[div] = c.rgb();
 				lastGoodColor = c;
 			}
-			zbuffer[div] = new RGB(z,z,z).rgb();
+			if (zbuffer != null)
+				zbuffer[div] = new RGB(z,z,z).rgb();
 		}
 	}
 }
