@@ -38,7 +38,7 @@ public class Test extends JFrame {
 		c.getGL().setViewMatrix(viewMatrix);
 		c.getGL().setProjectionMatrix(projectionMatrix);
 		c.getGL().setPolygonMode(PolygonMode.Fill);
-		c.getGL().setDepthMode(DepthMode.PerUnit);
+		c.getGL().setDepthMode(DepthMode.PerPixel);
 
 		c.setDrawLoop(new Runnable() {
 			float t = 0;
@@ -47,13 +47,14 @@ public class Test extends JFrame {
 				Matrix model = new Matrix();
 				model.setToTranslation(Point3D.Zero);
 				float s = (float)(Math.cos(t)) * 2;
+				float s2 = (float)(Math.sin(t)) * 2;
 				t += 0.04f;
 				
 				gl.modelMatrix(model);
 				gl.color(255, 0, 0);
 				gl.vertex(1, 1, s);
 				gl.color(0, 255, 0);
-				gl.vertex(-1, 1, s);
+				gl.vertex(-1, 1, s2);
 				gl.color(0, 0, 255);
 				gl.vertex(0, -4, 10);
 				
@@ -72,9 +73,9 @@ public class Test extends JFrame {
 				gl.vertex(-5, -1, 26);
 				
 				gl.color(RGB.Aqua);
-				gl.vertex(0.5f,0.5f,5);
+				gl.vertex(0.5f,0.5f,1);
 				gl.color(RGB.DarkGoldenrod);
-				gl.vertex(-0.5f,0.5f,5);
+				gl.vertex(-0.5f,0.5f,1);
 				gl.color(RGB.CadetBlue);
 				gl.vertex(0,-1,12);
 			}

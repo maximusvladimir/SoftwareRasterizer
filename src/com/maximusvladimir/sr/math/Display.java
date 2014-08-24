@@ -147,6 +147,8 @@ public class Display {
 			vswap = new Point3D(
 					(p1.x + ((float) (p2.y - p1.y) / (float) (p3.y - p1.y))
 							* (p3.x - p1.x)), p2.y, p2.z);
+			//(int) (vt1.x + ((float) (vt2.y - vt1.y) / (float) (vt3.y - vt1.y))
+					//* (vt3.x - vt1.x)), vt2.y);
 			float cBlue = c1.b()
 					+ ((float) (p2.y - p1.y) / (float) (p3.y - p1.y))
 					* (c3.b() - c1.b());
@@ -158,6 +160,7 @@ public class Display {
 					* (c2.g() - c1.g());
 			cTmp = new RGB((int) cRed, (int) cGreen, (int) cBlue);
 			lowerTri(data, p1, p2, vswap, c1, c2, cTmp);
+			//lowerTri(data,p2,vswap,p3,c2,cTmp,c3);
 			upperTri(data, p2, vswap, p3, c2, cTmp, c3);
 		}
 	}
@@ -174,7 +177,8 @@ public class Display {
 			is = 0;
 		return is;
 	}
-
+	
+	// bugged
 	private static void upperTri(ImageData img, Point3D v1, Point3D v2,
 			Point3D v3, RGB c1, RGB c2, RGB c3) {
 		float slope1 = (float) (v3.x - v1.x) / (float) (v3.y - v1.y);
@@ -257,10 +261,12 @@ public class Display {
 				if (img.depthMode == DepthMode.PerPixel) {
 					img.setPixel(xs, y, calculateDepth(img,((1 - t) * cDepth1 + t * cDepth2)), new RGB(rc, gc, bc));
 				}
-				img.setPixel(xs, y, 0, new RGB(rc, gc, bc));
+				else
+					img.setPixel(xs, y, 0, new RGB(rc, gc, bc));
 				// setPixel(xs, y, rc, gc, bc, bck);
+				xs++;
 			}
-			xs++;
+			
 		}
 	}
 
@@ -331,7 +337,8 @@ public class Display {
 				int gc = (int) ((1 - t) * cGreen1 + t * cGreen2);
 				int bc = (int) ((1 - t) * cBlue1 + t * cBlue2);
 				if (img.depthMode == DepthMode.PerPixel) {
-					img.setPixel(xs, y, calculateDepth(img,((1 - t) * cDepth1 + t * cDepth2)), new RGB(rc, gc, bc));
+					int depth = calculateDepth(img,((1 - t) * cDepth1 + t * cDepth2));
+					img.setPixel(xs, y, depth, new RGB(rc, gc, bc));
 				} else
 					img.setPixel(xs, y, 0, new RGB(rc, gc, bc));
 				xs++;

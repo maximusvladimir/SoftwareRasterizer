@@ -20,6 +20,10 @@ public class GL {
 	private Matrix _projectionMatrix = new Matrix();
 	private int _pointSize = 3;
 	private DepthMode _depthMode = DepthMode.PerPixel;
+	private float _fogBegin = 0;
+	private float _fogEnd = 0;
+	private RGB _fogColor = RGB.Gray;
+	private boolean _fogEnabled = false;
 
 	GL() {
 
@@ -82,6 +86,30 @@ public class GL {
 				Display.drawLerpLine(img, p1, p3, t.c1, t.c3);
 			}
 		}
+	}
+	
+	public void setFogBegin(float begin) {
+		_fogBegin = begin;
+	}
+	
+	public float getFogBegin() {
+		return _fogBegin;
+	}
+	
+	public void setFogEnd(float end) {
+		_fogEnd = end;
+	}
+	
+	public float getFogEnd() {
+		return _fogEnd;
+	}
+	
+	public void setFogColor(RGB color) {
+		_fogColor = color;
+	}
+	
+	public RGB getFogColor() {
+		return _fogColor;
 	}
 	
 	public void setDepthMode(DepthMode mode) {
