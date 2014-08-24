@@ -155,6 +155,8 @@ public class Component3D extends Component {
 		if (_drawLoop != null) {
 			_drawLoop.run();
 		}
+		if (_bufferData == null || _bufferData.gz == null)
+			return;
 		_bufferData.gz.setColor(Color.black);
 		_bufferData.gz.fillRect(0, 0, _bufferData.w, _bufferData.h);
 		g.setColor(new Color(_clearColor.rgb()));

@@ -39,7 +39,12 @@ public class ImageData {
 					data[div] = c.rgb();
 				lastGoodColor = c;
 			}
+<<<<<<< HEAD
 			zbuffer[div] = sampler;
+=======
+			if (zbuffer != null)
+				zbuffer[div] = new RGB(z,z,z).rgb();
+>>>>>>> origin/master
 		}
 	}
 }
