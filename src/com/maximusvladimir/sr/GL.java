@@ -3,7 +3,9 @@ package com.maximusvladimir.sr;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.util.ArrayList;
+import java.util.HashMap;
 
+import com.maximusvladimir.sr.ext.fog.IFogEquation;
 import com.maximusvladimir.sr.flags.DepthMode;
 import com.maximusvladimir.sr.flags.PolygonMode;
 import com.maximusvladimir.sr.math.Display;
@@ -24,7 +26,11 @@ public class GL {
 	private float _fogEnd = 0;
 	private RGB _fogColor = RGB.Gray;
 	private boolean _fogEnabled = false;
+	private boolean _texturingEnabled = false;
 	private long _threadId;
+	private IFogEquation _fogEquation;
+	private int _currentTextureCounter = 0;
+	private HashMap<Integer,Texture> _textures = new HashMap<Integer,Texture>();
 	
 	GL(long threadId) {
 		_threadId = threadId;
@@ -35,11 +41,12 @@ public class GL {
 	private VertexData _vdStruct2 = new VertexData();
 	private VertexData _vdStruct3 = new VertexData();
 	void draw(ImageData img) {
+		img.gl = this;
 		img.znear = getProjectionMatrix().Znear;
 		img.zfar = getProjectionMatrix().Zfar;
 		img.lastGoodColor = RGB.White;
 		img.depthMode = getDepthMode();
-		Display.convertOperationsToTriangles(_operations, _triangles);
+		Display.convertOperationsToTriangles(this,_operations, _triangles);
 		_operations.clear();
 		ArrayList<java.awt.Polygon> _depthPolygons = new ArrayList<java.awt.Polygon>();
 		for (int i = 0; i < _lists.size(); i++) {
@@ -62,16 +69,29 @@ public class GL {
 					g.setColor(new Color(t.c1.rgb()));
 					img.lastGoodColor = t.c1;
 				}
+				else {
+					t.c1 = t.c2 = t.c3 = RGB.White;
+				}
+				if (t.tc1 == null)
+					t.tc1 = TextureCoord.ZERO;
+				if (t.tc2 == null)
+					t.tc2 = TextureCoord.ZERO;
+				if (t.tc3 == null)
+					t.tc3 = TextureCoord.ZERO;
 				float z = 0;
 				if (getDepthMode() == DepthMode.PerUnit) {
 					z = (p1.z + p2.z + p3.z) * 0.3333333333333333333f;
 				}
 				_vdStruct1.p = p1;
 				_vdStruct1.c = t.c1;
+				_vdStruct1.t = t.tc1;
 				_vdStruct2.p = p2;
 				_vdStruct2.c = t.c2;
+				_vdStruct2.t = t.tc2;
 				_vdStruct3.p = p3;
 				_vdStruct3.c = t.c3;
+				_vdStruct3.t = t.tc3;
+				img.activeTex = t.texture;
 				//Display.DrawTriangle(img, new Point3I(p1), new Point3I(p2), new Point3I(p3), t.c1,t.c2,t.c3);
 				Display.drawTriangle(img, _vdStruct1,_vdStruct2,_vdStruct3);
 				if (getDepthMode() == DepthMode.PerUnit) {
@@ -113,6 +133,33 @@ public class GL {
 			throw new RuntimeException("Attempting to access GL functions on wrong thread. Please place all drawing code inside the draw loop.");
 	}
 	
+	public int createTexture(Texture t) {
+		if (t == null)
+			return -1;
+		_textures.put(_currentTextureCounter, t);
+		return _currentTextureCounter++;
+	}
+	
+	public boolean deleteTexture(int id) {
+		if (_textures.containsKey(id)) {
+			Texture t = _textures.remove(id);
+			try {
+				t.delete();
+			}
+			catch (Throwable t2) {
+				
+			}
+			return true;
+		}
+		return false;
+	}
+	
+	public Texture getTexture(int id) {
+		if (_textures.containsKey(id))
+			return _textures.get(id);
+		return null;
+	}
+	
 	public void setFogBegin(float begin) {
 		checkThrowBadThread();
 		_fogBegin = begin;
@@ -149,6 +196,24 @@ public class GL {
 		return _depthMode;
 	}
 	
+	public void setTexturesEnabled(boolean texturing) {
+		checkThrowBadThread();
+		_texturingEnabled = texturing;
+	}
+	
+	public boolean isTexturingEnabled() {
+		return _texturingEnabled;
+	}
+	
+	public void setFogEquation(IFogEquation fogEquation) {
+		checkThrowBadThread();
+		_fogEquation = fogEquation;
+	}
+	
+	public IFogEquation getFogEquation() {
+		return _fogEquation;
+	}
+	
 	public void setPointSize(int s) {
 		checkThrowBadThread();
 		_pointSize = s;
@@ -156,6 +221,15 @@ public class GL {
 	
 	public int getPointSize() {
 		return _pointSize;
+	}
+	
+	public void setFogEnabled(boolean fog) {
+		checkThrowBadThread();
+		_fogEnabled = fog;
+	}
+	
+	public boolean getFogEnabled() {
+		return _fogEnabled;
 	}
 
 	public void setViewMatrix(Matrix viewMatrix) {
@@ -235,6 +309,11 @@ public class GL {
 	public void vertex(Point3D point) {
 		checkThrowBadThread();
 		_operations.add(point);
+	}
+	
+	public void bindTexture(int id) {
+		checkThrowBadThread();
+		_operations.add(new ActiveTexture(id));
 	}
 
 	public void callList(DisplayList list) {

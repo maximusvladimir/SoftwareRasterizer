@@ -2,8 +2,10 @@ package com.maximusvladimir.sr.math;
 
 import java.awt.Graphics;
 
+import com.maximusvladimir.sr.GL;
 import com.maximusvladimir.sr.RGB;
 import com.maximusvladimir.sr.RGBA;
+import com.maximusvladimir.sr.Texture;
 import com.maximusvladimir.sr.flags.DepthMode;
 
 public class ImageData {
@@ -16,6 +18,8 @@ public class ImageData {
 	public float znear;
 	public float zfar;
 	public DepthMode depthMode;
+	public GL gl;
+	public Texture activeTex;
 	public void setPixel(int x, int y, RGB c) {
 		setPixel(x,y,0,c);
 	}

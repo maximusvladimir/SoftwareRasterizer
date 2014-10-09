@@ -102,7 +102,7 @@ public class Component3D extends Component {
 					long start = System.nanoTime();
 					_isInRender.set(true);
 					render(_buffer.getGraphics());
-					// _lastGoodImage = deepCopy(_depth);
+					//_lastGoodImage = deepCopy(_depth);
 					_lastGoodImage = deepCopy(_buffer);
 					_isInRender.set(false);
 					_realFrameTimeTotal += (System.nanoTime() - start);

@@ -1,14 +1,16 @@
 package com.maximusvladimir.sr;
 
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
 
 import com.maximusvladimir.sr.flags.TextureFilter;
 import com.maximusvladimir.sr.flags.TextureWrap;
 
-public class Texture extends Operation {
+public class Texture {
 	private BufferedImage _texture;
 	private TextureFilter _filter = TextureFilter.Nearest;
 	private TextureWrap _wrap = TextureWrap.Clamp;
+	private int[] _textData;
 	private int _w;
 	private int _h;
 	private float _unitX;
@@ -18,14 +20,20 @@ public class Texture extends Operation {
 	}
 	
 	public Texture(BufferedImage tx) {
-		id = 4;
 		_texture = tx;
 		if (_texture != null) {
 			_w = _texture.getWidth();
 			_h = _texture.getHeight();
 			_unitX = 1.0f / _w;
 			_unitY = 1.0f / _h;
+			if (_texture.getType() == BufferedImage.TYPE_INT_RGB)
+				_textData = ((DataBufferInt)tx.getRaster().getDataBuffer()).getData();
 		}
+	}
+	
+	void delete() {
+		_textData = null;
+		_texture.flush();
 	}
 	
 	public void setTextureFilter(TextureFilter filter) {
@@ -45,10 +53,10 @@ public class Texture extends Operation {
 	}
 	
 	RGB lookup(TextureCoord coord) {
-		return lookup(coord.u(),coord._v());
+		return lookup(coord.u(),coord.v());
 	}
 	
-	RGB lookup(float u, float v) {
+	public RGB lookup(float u, float v) {
 		if (_texture == null)
 			return RGB.Black;
 		if (getTextureFilter() == TextureFilter.Linear) {
@@ -84,6 +92,14 @@ public class Texture extends Operation {
 				pixx = pixy % _h;
 		}
 		
-		return new RGB(_texture.getRGB(pixx, pixy));
+		if (_textData != null) {
+			int det = pixy * _texture.getWidth() + pixx;
+			if (det > 0 && det < _textData.length)
+				return new RGB(_textData[det]);
+			else
+				return RGB.Black;
+		}
+		else
+			return new RGB(_texture.getRGB(pixx, pixy));
 	}
 }

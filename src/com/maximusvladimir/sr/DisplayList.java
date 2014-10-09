@@ -59,7 +59,7 @@ public class DisplayList extends Operation {
 	}
 	
 	public void build() {
-		Display.convertOperationsToTriangles(_operations, _triangles);
+		Display.convertOperationsToTriangles(null,_operations, _triangles);
 		for (int i = 0; i < _triangles.size(); i++) {
 			_triangles.get(i).list = this;
 		}

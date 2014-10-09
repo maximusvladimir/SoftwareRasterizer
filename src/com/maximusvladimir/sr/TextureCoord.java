@@ -3,6 +3,7 @@ package com.maximusvladimir.sr;
 public class TextureCoord extends Operation {
 	private float _u;
 	private float _v;
+	public static final TextureCoord ZERO = new TextureCoord(0,0);
 	public TextureCoord() {
 		this(0,0);
 	}
@@ -17,7 +18,7 @@ public class TextureCoord extends Operation {
 		return _u;
 	}
 	
-	public float _v() {
+	public float v() {
 		return _v;
 	}
 	

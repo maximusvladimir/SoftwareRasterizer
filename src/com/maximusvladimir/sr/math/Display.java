@@ -4,7 +4,9 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import com.maximusvladimir.sr.ActiveTexture;
 import com.maximusvladimir.sr.DisplayList;
+import com.maximusvladimir.sr.GL;
 import com.maximusvladimir.sr.Normal;
 import com.maximusvladimir.sr.Operation;
 import com.maximusvladimir.sr.Point3D;
@@ -145,6 +147,10 @@ public class Display {
 			vswap = new Point3D(
 					(int) (d1.p.x + d2sd1Dd3sd1 * (d3.p.x - d1.p.x)), d2.p.y,
 					d2.p.z);
+			
+			float tcU = d1.t.u() + d2sd1Dd3sd1 * (d3.t.u() - d1.t.u());
+			float tcV = d1.t.v() + d2sd1Dd3sd1 * (d3.t.v() - d1.t.v());
+			
 			float cBlue = d1.c.b() + d2sd1Dd3sd1 * (d3.c.b() - d1.c.b());
 			float cRed = d1.c.r() + d2sd1Dd3sd1 * (d3.c.r() - d1.c.r());
 			float cGreen = d1.c.g() + d2sd1Dd3sd1 * (d3.c.g() - d1.c.g());
@@ -153,6 +159,7 @@ public class Display {
 			vswap.z = cDepth;
 			_structSwap.c = cTmp;
 			_structSwap.p = vswap;
+			_structSwap.t = new TextureCoord(tcU,tcV);
 			lowerTri(data, d1, d2, _structSwap);
 			upperTri(data, d2, _structSwap, d3);
 		}
@@ -272,12 +279,24 @@ public class Display {
 		float colorSlopeBlue1 = (float) (d2.c.b() - d1.c.b()) * va2va1Diff;
 		float colorSlopeRed1 = (float) (d2.c.r() - d1.c.r()) * va2va1Diff;
 		float colorSlopeGreen1 = (float) (d2.c.g() - d1.c.g()) * va2va1Diff;
+		float tcSlopeU1 = 0;
+		float tcSlopeV1 = 0;
+		if (img.gl.isTexturingEnabled()) {
+			tcSlopeU1 = (float)(d2.t.u() - d1.t.u()) * va2va1Diff;
+			tcSlopeV1 = (float)(d2.t.v() - d1.t.v()) * va2va1Diff;
+		}
 		float va3va1Diff = 1.0f / (float) (d3.p.y - d1.p.y);
 		float colorSlopeBlue2 = (float) (d3.c.b() - d1.c.b()) * va3va1Diff;
 		float colorSlopeRed2 = (float) (d3.c.r() - d1.c.r()) * va3va1Diff;
 		float colorSlopeGreen2 = (float) (d3.c.g() - d1.c.g()) * va3va1Diff;
 		float colorSlopeDepth1 = (float) (d2.p.z - d1.p.z) * va2va1Diff;
 		float colorSlopeDepth2 = (float) (d3.p.z - d1.p.z) * va3va1Diff;
+		float tcSlopeU2 = 0;
+		float tcSlopeV2 = 0;
+		if (img.gl.isTexturingEnabled()) {
+			tcSlopeU2 = (float)(d3.t.u() - d1.t.u()) * va3va1Diff;
+			tcSlopeV2 = (float)(d3.t.v() - d1.t.v()) * va3va1Diff;
+		}
 		float cBlue1 = d1.c.b();
 		float cRed1 = d1.c.r();
 		float cGreen1 = d1.c.g();
@@ -286,6 +305,10 @@ public class Display {
 		float cGreen2 = d1.c.g();
 		float cDepth1 = d1.p.z;
 		float cDepth2 = d1.p.z;
+		float tcU1 = d1.t.u();
+		float tcU2 = d1.t.u();
+		float tcV1 = d1.t.v();
+		float tcV2 = d1.t.v();
 		if (slope2 < slope1) {
 			float slopeTmp = slope1;
 			slope1 = slope2;
@@ -306,6 +329,16 @@ public class Display {
 				slopeTmp = colorSlopeDepth1;
 				colorSlopeDepth1 = colorSlopeDepth2;
 				colorSlopeDepth2 = slopeTmp;
+			}
+			
+			if (img.gl.isTexturingEnabled()) {
+				slopeTmp = tcSlopeU1;
+				tcSlopeU1 = tcSlopeU2;
+				tcSlopeU2 = slopeTmp;
+				
+				slopeTmp = tcSlopeV1;
+				tcSlopeV1 = tcSlopeV2;
+				tcSlopeV2 = slopeTmp;
 			}
 		}
 		for (int y = (int) d1.p.y; y <= d2.p.y; y++) {
@@ -329,12 +362,21 @@ public class Display {
 				int rc = (int) (it * cRed1 + t * cRed2);
 				int gc = (int) (it * cGreen1 + t * cGreen2);
 				int bc = (int) (it * cBlue1 + t * cBlue2);
+				RGB col = new RGB(rc, gc, bc);
+				if (img.gl.isTexturingEnabled() && img.activeTex != null) {
+					float tu = (it * tcU1 + t * tcU2);
+					float tv = (it * tcV1 + t * tcV2);
+					//System.out.println(tu + "," + tv);
+					col = img.activeTex.lookup(tu, tv);
+				}
 				if (img.depthMode == DepthMode.PerPixel) {
 					int depth = calculateDepth(img,
 							(it * cDepth1 + t * cDepth2));
-					img.setPixel(xs, y, depth, new RGB(rc, gc, bc));
+					if (img.gl.getFogEnabled() && img.gl.getFogEquation() != null)
+						col = RGB.lerp(col, img.gl.getFogColor(), img.gl.getFogEquation().calculateFog(depth/255.0f));
+					img.setPixel(xs, y, depth, col);
 				} else
-					img.setPixel(xs, y, 0, new RGB(rc, gc, bc));
+					img.setPixel(xs, y, 0, col);
 				xs++;
 			}
 			x1 += slope1;
@@ -348,6 +390,12 @@ public class Display {
 			if (img.depthMode == DepthMode.PerPixel) {
 				cDepth1 += colorSlopeDepth1;
 				cDepth2 += colorSlopeDepth2;
+			}
+			if (img.gl.isTexturingEnabled()) {
+				tcU1 += tcSlopeU1;
+				tcV1 += tcSlopeV1;
+				tcU2 += tcSlopeU2;
+				tcV2 += tcSlopeV2;
 			}
 		}
 	}
@@ -402,7 +450,7 @@ public class Display {
 		}
 	}
 
-	public static final void convertOperationsToTriangles(
+	public static final void convertOperationsToTriangles(GL gl,
 			ArrayList<Operation> _operations, ArrayList<Triangle> _triangles) {
 		_triangles.clear();
 		Triangle t = new Triangle();
@@ -449,11 +497,18 @@ public class Display {
 				else
 					t.n3 = (Normal) op;
 			} else if (op.id == 4) {
-				t.t = (Texture) op;
+				//None
+				
 			} else if (op.id == 5) {
 				mvp = (Matrix) op;
 			} else if (op.id == 6) {
 				_triangles.addAll(((DisplayList) op).getData());
+			} else if (op.id == 7) {
+				int id = ((ActiveTexture)op).getTextureId();
+				if (id >= 0)
+					t.texture = gl.getTexture(id);
+				else
+					t.texture = null;
 			}
 		}
 		Collections.reverse(_triangles);

@@ -1,9 +1,11 @@
 package com.maximusvladimir.sr.tests;
 
+import java.awt.Graphics;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
 
 import javax.swing.JFrame;
 
@@ -11,8 +13,12 @@ import com.maximusvladimir.sr.Component3D;
 import com.maximusvladimir.sr.GL;
 import com.maximusvladimir.sr.Point3D;
 import com.maximusvladimir.sr.RGB;
+import com.maximusvladimir.sr.Texture;
+import com.maximusvladimir.sr.ext.fog.LinearFog;
 import com.maximusvladimir.sr.flags.DepthMode;
 import com.maximusvladimir.sr.flags.PolygonMode;
+import com.maximusvladimir.sr.flags.TextureFilter;
+import com.maximusvladimir.sr.flags.TextureWrap;
 import com.maximusvladimir.sr.math.Matrix;
 
 public class Test extends JFrame {
@@ -21,8 +27,10 @@ public class Test extends JFrame {
 	public static void main(String[] args) {
 		new Test();
 	}
-float qual = 1.0f;
-float playerPos = -5;
+	
+	float qual = 1.0f;
+	float playerPos = -5;
+	
 	public Test() {
 		setSize(800, 600);
 		setTitle("Test");
@@ -87,6 +95,21 @@ float playerPos = -5;
 				c.getGL().setProjectionMatrix(projectionMatrix);
 				c.getGL().setPolygonMode(PolygonMode.Fill);
 				c.getGL().setDepthMode(DepthMode.PerPixel);
+				c.getGL().setFogEquation(new LinearFog());
+				c.getGL().setFogEnabled(true);
+				
+				BufferedImage te = new BufferedImage(32,32,BufferedImage.TYPE_INT_RGB);
+				Graphics g = te.getGraphics();
+				g.setColor(java.awt.Color.red);
+				g.fillRect(0, 0, 32, 32);
+				g.setColor(java.awt.Color.green);
+				g.drawLine(0, 0, 32, 32);
+				
+				Texture t = new Texture(te);
+				t.setTextureFilter(TextureFilter.Linear);
+				t.setTextureWrap(TextureWrap.Repeat);
+				c.getGL().createTexture(t);
+				c.getGL().setTexturesEnabled(true);
 			}
 		});
 		
@@ -101,13 +124,18 @@ float playerPos = -5;
 				t += 0.04f;
 				
 				gl.modelMatrix(model);
+				
+				gl.bindTexture(0);
+				gl.texCoord(0,0);
 				gl.color(255, 0, 0);
 				gl.vertex(1, 1, s);
 				gl.color(0, 255, 0);
+				gl.texCoord(0,2);
 				gl.vertex(-1, 1, s2);
 				gl.color(0, 0, 255);
+				gl.texCoord(2,0);
 				gl.vertex(0, -4, 10);
-				
+
 				gl.color(255, 0, 255);
 				gl.vertex(4, -1, 16);
 				gl.color(255, 255, 0);
@@ -117,6 +145,7 @@ float playerPos = -5;
 				
 				gl.color(RGB.getPresetRandomColor());
 				gl.vertex(-4, 1, 26);
+				gl.texCoord(0,1);
 				gl.color(RGB.getPresetRandomColor());
 				gl.vertex(-6, 1, 26);
 				gl.color(RGB.getPresetRandomColor());
