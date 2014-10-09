@@ -25,7 +25,7 @@ public class ImageData {
 		if (data != null && div > 0 && div < data.length - 1) {
 			//c = RGB.lerp(RGB.Black,c,z/255.0f);
 			int sampler = new RGB(z,z,z).rgb();
-			if (zbuffer[div] > sampler)
+			if (zbuffer != null && zbuffer[div] > sampler)
 				return;
 			if (c == null) {
 				if (lastGoodColor.isTransparent())
@@ -39,12 +39,8 @@ public class ImageData {
 					data[div] = c.rgb();
 				lastGoodColor = c;
 			}
-<<<<<<< HEAD
-			zbuffer[div] = sampler;
-=======
 			if (zbuffer != null)
 				zbuffer[div] = new RGB(z,z,z).rgb();
->>>>>>> origin/master
 		}
 	}
 }

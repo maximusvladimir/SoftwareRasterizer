@@ -24,11 +24,16 @@ public class GL {
 	private float _fogEnd = 0;
 	private RGB _fogColor = RGB.Gray;
 	private boolean _fogEnabled = false;
-
-	GL() {
-
+	private long _threadId;
+	
+	GL(long threadId) {
+		_threadId = threadId;
 	}
 
+	
+	private VertexData _vdStruct1 = new VertexData();
+	private VertexData _vdStruct2 = new VertexData();
+	private VertexData _vdStruct3 = new VertexData();
 	void draw(ImageData img) {
 		img.znear = getProjectionMatrix().Znear;
 		img.zfar = getProjectionMatrix().Zfar;
@@ -61,7 +66,14 @@ public class GL {
 				if (getDepthMode() == DepthMode.PerUnit) {
 					z = (p1.z + p2.z + p3.z) * 0.3333333333333333333f;
 				}
-				Display.DrawTriangle(img, p1, p2, p3, t.c1,t.c2,t.c3);
+				_vdStruct1.p = p1;
+				_vdStruct1.c = t.c1;
+				_vdStruct2.p = p2;
+				_vdStruct2.c = t.c2;
+				_vdStruct3.p = p3;
+				_vdStruct3.c = t.c3;
+				//Display.DrawTriangle(img, new Point3I(p1), new Point3I(p2), new Point3I(p3), t.c1,t.c2,t.c3);
+				Display.drawTriangle(img, _vdStruct1,_vdStruct2,_vdStruct3);
 				if (getDepthMode() == DepthMode.PerUnit) {
 					int c = Display.calculateDepth(img, z);
 					img.gz.setColor(new RGB(c,c,c).asJavaAwtColor());
@@ -88,7 +100,21 @@ public class GL {
 		}
 	}
 	
+	private long getGLThread() {
+		return _threadId;
+	}
+	
+	public boolean isOnGLThread() {
+		return Thread.currentThread().getId() == getGLThread();
+	}
+	
+	private void checkThrowBadThread() {
+		if (!isOnGLThread())
+			throw new RuntimeException("Attempting to access GL functions on wrong thread. Please place all drawing code inside the draw loop.");
+	}
+	
 	public void setFogBegin(float begin) {
+		checkThrowBadThread();
 		_fogBegin = begin;
 	}
 	
@@ -97,6 +123,7 @@ public class GL {
 	}
 	
 	public void setFogEnd(float end) {
+		checkThrowBadThread();
 		_fogEnd = end;
 	}
 	
@@ -105,6 +132,7 @@ public class GL {
 	}
 	
 	public void setFogColor(RGB color) {
+		checkThrowBadThread();
 		_fogColor = color;
 	}
 	
@@ -113,6 +141,7 @@ public class GL {
 	}
 	
 	public void setDepthMode(DepthMode mode) {
+		checkThrowBadThread();
 		_depthMode = mode;
 	}
 	
@@ -121,6 +150,7 @@ public class GL {
 	}
 	
 	public void setPointSize(int s) {
+		checkThrowBadThread();
 		_pointSize = s;
 	}
 	
@@ -129,6 +159,7 @@ public class GL {
 	}
 
 	public void setViewMatrix(Matrix viewMatrix) {
+		checkThrowBadThread();
 		_viewMatrix = viewMatrix;
 	}
 
@@ -137,6 +168,7 @@ public class GL {
 	}
 
 	public void setProjectionMatrix(Matrix projectionMatrix) {
+		checkThrowBadThread();
 		_projectionMatrix = projectionMatrix;
 	}
 
@@ -145,6 +177,7 @@ public class GL {
 	}
 
 	public void setPolygonMode(PolygonMode mode) {
+		checkThrowBadThread();
 		_polyMode = mode;
 	}
 
@@ -153,6 +186,7 @@ public class GL {
 	}
 
 	public void modelMatrix(Matrix model) {
+		checkThrowBadThread();
 		Matrix mvp = Matrix.mul(Matrix.mul(model, getViewMatrix()),
 				getProjectionMatrix());
 		_operations.add(mvp);
@@ -163,6 +197,7 @@ public class GL {
 	}
 
 	public void normal(Normal point) {
+		checkThrowBadThread();
 		_operations.add(point);
 	}
 
@@ -171,6 +206,7 @@ public class GL {
 	}
 
 	public void texCoord(TextureCoord tc) {
+		checkThrowBadThread();
 		_operations.add(tc);
 	}
 
@@ -183,10 +219,12 @@ public class GL {
 	}
 	
 	public void color(RGBA rgba) {
+		checkThrowBadThread();
 		_operations.add(rgba);
 	}
 
 	public void color(RGB rgb) {
+		checkThrowBadThread();
 		_operations.add(rgb);
 	}
 
@@ -195,10 +233,12 @@ public class GL {
 	}
 
 	public void vertex(Point3D point) {
+		checkThrowBadThread();
 		_operations.add(point);
 	}
 
 	public void callList(DisplayList list) {
+		checkThrowBadThread();
 		_operations.add(list);
 	}
 }

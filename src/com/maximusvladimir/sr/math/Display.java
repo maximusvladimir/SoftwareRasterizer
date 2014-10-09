@@ -12,6 +12,7 @@ import com.maximusvladimir.sr.RGB;
 import com.maximusvladimir.sr.RGBA;
 import com.maximusvladimir.sr.Texture;
 import com.maximusvladimir.sr.TextureCoord;
+import com.maximusvladimir.sr.VertexData;
 import com.maximusvladimir.sr.flags.DepthMode;
 
 public class Display {
@@ -27,7 +28,8 @@ public class Display {
 			c = data.lastGoodColor;
 		int x = (int) p.x;
 		int y = (int) p.y;
-		// Manually setting the pixels, is faster, until you reach about 4x4 sizes.
+		// Manually setting the pixels, is faster, until you reach about 4x4
+		// sizes.
 		if (size == 1)
 			data.setPixel(x, y, c);
 		else if (size == 2) {
@@ -102,8 +104,9 @@ public class Display {
 		return 0;
 	}
 
-	public static void DrawTriangle(ImageData data, Point3D p1, Point3D p2,
-			Point3D p3, RGB c1, RGB c2, RGB c3) {
+	private static VertexData _structSwap = new VertexData();
+	public static void drawTriangle(ImageData data, VertexData d1,
+			VertexData d2, VertexData d3) {
 		// TODO: convert Point3D to Point3I for speed up!!!!!
 		// TODO
 		// TODO
@@ -115,94 +118,82 @@ public class Display {
 		// TODO
 		Point3D vswap;
 		RGB cTmp;
-		if (p1.y > p2.y) {
-			cTmp = c1;
-			vswap = p1;
-			p1 = p2;
-			c1 = c2;
-			p2 = vswap;
-			c2 = cTmp;
+		VertexData swp;
+		if (d1.p.y > d2.p.y) {
+			swp = d1;
+			d1 = d2;
+			d2 = swp;
 		}
-		if (p1.y > p3.y) {
-			cTmp = c1;
-			vswap = p1;
-			c1 = c3;
-			p1 = p3;
-			p3 = vswap;
-			c3 = cTmp;
+		if (d1.p.y > d3.p.y) {
+			swp = d1;
+			d1 = d3;
+			d3 = swp;
 		}
-		if (p2.y > p3.y) {
-			cTmp = c2;
-			vswap = p2;
-			p2 = p3;
-			c2 = c3;
-			p3 = vswap;
-			c3 = cTmp;
+		if (d2.p.y > d3.p.y) {
+			swp = d2;
+			d2 = d3;
+			d3 = swp;
 		}
-		if (p2.y == p3.y) {
-			lowerTri(data, p1, p2, p3, c1, c2, c3);
-		} else if (p1.y == p2.y) {
-			upperTri(data, p1, p2, p3, c1, c2, c3);
+		if (d2.p.y == d3.p.y) {
+			lowerTri(data, d1,d2,d3);
+		} else if (d1.p.y == d2.p.y) {
+			upperTri(data, d1,d2,d3);
 		} else {
+			float d2sd1 = d2.p.y - d1.p.y;
+			float d3sd1 = d3.p.y - d1.p.y;
+			float d2sd1Dd3sd1 = d2sd1 / d3sd1;
 			vswap = new Point3D(
-					(p1.x + ((float) (p2.y - p1.y) / (float) (p3.y - p1.y))
-							* (p3.x - p1.x)), p2.y, p2.z);
-			//(int) (vt1.x + ((float) (vt2.y - vt1.y) / (float) (vt3.y - vt1.y))
-					//* (vt3.x - vt1.x)), vt2.y);
-			float cBlue = c1.b()
-					+ ((float) (p2.y - p1.y) / (float) (p3.y - p1.y))
-					* (c3.b() - c1.b());
-			float cRed = c1.r()
-					+ ((float) (p2.y - p1.y) / (float) (p3.y - p1.y))
-					* (c3.r() - c1.r());
-			float cGreen = c1.g()
-					+ ((float) (p2.y - p1.y) / (float) (p3.y - p1.y))
-					* (c2.g() - c1.g());
+					(int) (d1.p.x + d2sd1Dd3sd1 * (d3.p.x - d1.p.x)), d2.p.y,
+					d2.p.z);
+			float cBlue = d1.c.b() + d2sd1Dd3sd1 * (d3.c.b() - d1.c.b());
+			float cRed = d1.c.r() + d2sd1Dd3sd1 * (d3.c.r() - d1.c.r());
+			float cGreen = d1.c.g() + d2sd1Dd3sd1 * (d3.c.g() - d1.c.g());
+			float cDepth = d1.p.z + d2sd1Dd3sd1 * (d3.p.z - d1.p.z);
 			cTmp = new RGB((int) cRed, (int) cGreen, (int) cBlue);
-			lowerTri(data, p1, p2, vswap, c1, c2, cTmp);
-			//lowerTri(data,p2,vswap,p3,c2,cTmp,c3);
-			upperTri(data, p2, vswap, p3, c2, cTmp, c3);
+			vswap.z = cDepth;
+			_structSwap.c = cTmp;
+			_structSwap.p = vswap;
+			lowerTri(data, d1, d2, _structSwap);
+			upperTri(data, d2, _structSwap, d3);
 		}
 	}
-	
+
 	public static int calculateDepth(ImageData data, float z) {
-		//float depth = (float) Math.pow(
-			//	Math.pow((data.zfar - data.znear), 50), z) * 255 - 255;
-		//System.out.println(z);
-		//System.out.println(z);
-		int is = (int)((z-1) * 62000);
+		// float depth = (float) Math.pow(
+		// Math.pow((data.zfar - data.znear), 50), z) * 255 - 255;
+		// System.out.println(z);
+		// System.out.println(z);
+		int is = (int) ((z - 1) * 62000);
 		if (is > 255)
 			is = 255;
 		if (is < 0)
 			is = 0;
 		return is;
 	}
-	
-	// bugged
-	private static void upperTri(ImageData img, Point3D v1, Point3D v2,
-			Point3D v3, RGB c1, RGB c2, RGB c3) {
-		float slope1 = (float) (v3.x - v1.x) / (float) (v3.y - v1.y);
-		float slope2 = (float) (v3.x - v2.x) / (float) (v3.y - v2.y);
-		float x1 = v3.x;
-		float x2 = v3.x + 0.5f;
-		float v3v1Diff = 1.0f / (float) (v3.y - v1.y);
-		float colorSlopeBlue1 = (float) (c3.b() - c1.b()) * v3v1Diff;
-		float colorSlopeDepth1 = (float) (v3.z - v1.z) * v3v1Diff;
-		float colorSlopeRed1 = (float) (c3.r() - c1.r()) / v3v1Diff;
-		float colorSlopeGreen1 = (float) (c3.g() - c1.g()) * v3v1Diff;
-		float v3v2Diff = 1.0f / (float) (v3.y - v2.y);
-		float colorSlopeBlue2 = (float) (c3.b() - c2.b()) * v3v2Diff;
-		float colorSlopeDepth2 = (float) (v3.z - v2.z) * v3v2Diff;
-		float colorSlopeRed2 = (float) (c3.r() - c2.r()) / v3v2Diff;
-		float colorSlopeGreen2 = (float) (c3.g() - c2.g()) * v3v2Diff;
-		float cBlue1 = c3.b();
-		float cRed1 = c3.r();
-		float cGreen1 = c3.g();
-		float cBlue2 = c3.b();
-		float cRed2 = c3.r();
-		float cGreen2 = c3.g();
-		float cDepth1 = v3.z;
-		float cDepth2 = v3.z;
+
+	private static void upperTri(ImageData img, VertexData d1, VertexData d2, VertexData d3) {
+		float slope1 = (float) (d3.p.x - d1.p.x) / (float) (d3.p.y - d1.p.y);
+		float slope2 = (float) (d3.p.x - d2.p.x) / (float) (d3.p.y - d2.p.y);
+		float x1 = d3.p.x;
+		float x2 = d3.p.x + 0.5f;
+		float p1pDiff = 1.0f / (float) (d3.p.y - d1.p.y);
+		float colorSlopeBlue1 = (float) (d3.c.b() - d1.c.b()) * p1pDiff;
+		float colorSlopeDepth1 = (float) (d3.p.z - d1.p.z) * p1pDiff;
+		float colorSlopeRed1 = (float) (d3.c.r() - d1.c.r()) * p1pDiff;
+		float colorSlopeGreen1 = (float) (d3.c.g() - d1.c.g()) * p1pDiff;
+		float p3pDiff = 1.0f / (float) (d3.p.y - d2.p.y);
+		float colorSlopeBlue2 = (float) (d3.c.b() - d2.c.b()) * p3pDiff;
+		float colorSlopeDepth2 = (float) (d3.p.z - d2.p.z) * p3pDiff;
+		float colorSlopeRed2 = (float) (d3.c.r() - d2.c.r()) * p3pDiff;
+		float colorSlopeGreen2 = (float) (d3.c.g() - d2.c.g()) * p3pDiff;
+		float cBlue1 = d3.c.b();
+		float cRed1 = d3.c.r();
+		float cGreen1 = d3.c.g();
+		float cBlue2 = d3.c.b();
+		float cRed2 = d3.c.r();
+		float cGreen2 = d3.c.g();
+		float cDepth1 = d3.p.z;
+		float cDepth2 = d3.p.z;
 		if (slope1 < slope2) {
 			float slopeTmp = slope1;
 			slope1 = slope2;
@@ -226,7 +217,7 @@ public class Display {
 				colorSlopeDepth2 = slopeTmp;
 			}
 		}
-		for (int y = (int) v3.y; y > v1.y; y--) {
+		for (int y = (int) d3.p.y; y > d1.p.y; y--) {
 			x1 -= slope1;
 			x2 -= slope2;
 			cRed1 -= colorSlopeRed1;
@@ -255,45 +246,46 @@ public class Display {
 			float den = x2 - x1;
 			while (xs < xe) {
 				float t = (xs - x1) / den;
-				int rc = (int) ((1 - t) * cRed1 + t * cRed2);
-				int gc = (int) ((1 - t) * cGreen1 + t * cGreen2);
-				int bc = (int) ((1 - t) * cBlue1 + t * cBlue2);
+				float it = 1 - t;
+				int rc = (int) (it * cRed1 + t * cRed2);
+				int gc = (int) (it * cGreen1 + t * cGreen2);
+				int bc = (int) (it * cBlue1 + t * cBlue2);
 				if (img.depthMode == DepthMode.PerPixel) {
-					img.setPixel(xs, y, calculateDepth(img,((1 - t) * cDepth1 + t * cDepth2)), new RGB(rc, gc, bc));
-				}
-				else
+					img.setPixel(xs, y,
+							calculateDepth(img, (it * cDepth1 + t * cDepth2)),
+							new RGB(rc, gc, bc));
+				} else
 					img.setPixel(xs, y, 0, new RGB(rc, gc, bc));
 				// setPixel(xs, y, rc, gc, bc, bck);
 				xs++;
 			}
-			
+
 		}
 	}
 
-	private static void lowerTri(ImageData img, Point3D v1, Point3D v2,
-			Point3D v3, RGB c1, RGB c2, RGB c3) {
-		float slope1 = (float) (v2.x - v1.x) / (float) (v2.y - v1.y);
-		float slope2 = (float) (v3.x - v1.x) / (float) (v3.y - v1.y);
-		float x1 = v1.x;
-		float x2 = v1.x + 0.5f;
-		float v2v1Diff = 1.0f / (float) (v2.y - v1.y);
-		float colorSlopeBlue1 = (float) (c2.b() - c1.b()) * v2v1Diff;
-		float colorSlopeRed1 = (float) (c2.r() - c1.r()) * v2v1Diff;
-		float colorSlopeGreen1 = (float) (c2.g() - c1.g()) * v2v1Diff;
-		float v3v1Diff = 1.0f / (float) (v3.y - v1.y);
-		float colorSlopeBlue2 = (float) (c3.b() - c1.b()) * v3v1Diff;
-		float colorSlopeRed2 = (float) (c3.r() - c1.r()) * v3v1Diff;
-		float colorSlopeGreen2 = (float) (c3.g() - c1.g()) * v3v1Diff;
-		float colorSlopeDepth1 = (float) (v2.z - v1.z) * v2v1Diff;
-		float colorSlopeDepth2 = (float) (v3.z - v1.z) * v3v1Diff;
-		float cBlue1 = c1.b();
-		float cRed1 = c1.r();
-		float cGreen1 = c1.g();
-		float cBlue2 = c1.b();
-		float cRed2 = c1.r();
-		float cGreen2 = c1.g();
-		float cDepth1 = v1.z;
-		float cDepth2 = v1.z;
+	private static void lowerTri(ImageData img, VertexData d1, VertexData d2, VertexData d3) {
+		float slope1 = (float) (d2.p.x - d1.p.x) / (float) (d2.p.y - d1.p.y);
+		float slope2 = (float) (d3.p.x - d1.p.x) / (float) (d3.p.y - d1.p.y);
+		float x1 = d1.p.x;
+		float x2 = d1.p.x + 0.5f;
+		float va2va1Diff = 1.0f / (float) (d2.p.y - d1.p.y);
+		float colorSlopeBlue1 = (float) (d2.c.b() - d1.c.b()) * va2va1Diff;
+		float colorSlopeRed1 = (float) (d2.c.r() - d1.c.r()) * va2va1Diff;
+		float colorSlopeGreen1 = (float) (d2.c.g() - d1.c.g()) * va2va1Diff;
+		float va3va1Diff = 1.0f / (float) (d3.p.y - d1.p.y);
+		float colorSlopeBlue2 = (float) (d3.c.b() - d1.c.b()) * va3va1Diff;
+		float colorSlopeRed2 = (float) (d3.c.r() - d1.c.r()) * va3va1Diff;
+		float colorSlopeGreen2 = (float) (d3.c.g() - d1.c.g()) * va3va1Diff;
+		float colorSlopeDepth1 = (float) (d2.p.z - d1.p.z) * va2va1Diff;
+		float colorSlopeDepth2 = (float) (d3.p.z - d1.p.z) * va3va1Diff;
+		float cBlue1 = d1.c.b();
+		float cRed1 = d1.c.r();
+		float cGreen1 = d1.c.g();
+		float cBlue2 = d1.c.b();
+		float cRed2 = d1.c.r();
+		float cGreen2 = d1.c.g();
+		float cDepth1 = d1.p.z;
+		float cDepth2 = d1.p.z;
 		if (slope2 < slope1) {
 			float slopeTmp = slope1;
 			slope1 = slope2;
@@ -316,7 +308,7 @@ public class Display {
 				colorSlopeDepth2 = slopeTmp;
 			}
 		}
-		for (int y = (int) v1.y; y <= v2.y; y++) {
+		for (int y = (int) d1.p.y; y <= d2.p.y; y++) {
 			if (y > img.h || y < 0)
 				continue;
 			int xs = (int) Math.ceil(x1);
@@ -333,11 +325,13 @@ public class Display {
 			float den = x2 - x1;
 			while (xs < xe) {
 				float t = (xs - x1) / den;
-				int rc = (int) ((1 - t) * cRed1 + t * cRed2);
-				int gc = (int) ((1 - t) * cGreen1 + t * cGreen2);
-				int bc = (int) ((1 - t) * cBlue1 + t * cBlue2);
+				float it = 1 - t;
+				int rc = (int) (it * cRed1 + t * cRed2);
+				int gc = (int) (it * cGreen1 + t * cGreen2);
+				int bc = (int) (it * cBlue1 + t * cBlue2);
 				if (img.depthMode == DepthMode.PerPixel) {
-					int depth = calculateDepth(img,((1 - t) * cDepth1 + t * cDepth2));
+					int depth = calculateDepth(img,
+							(it * cDepth1 + t * cDepth2));
 					img.setPixel(xs, y, depth, new RGB(rc, gc, bc));
 				} else
 					img.setPixel(xs, y, 0, new RGB(rc, gc, bc));
@@ -387,7 +381,7 @@ public class Display {
 			if (data != null) {
 				float depth = -Display.lerp(-p1.z, -p2.z, c / d);
 				if (c1.isTransparent() || c2.isTransparent())
-					data.setPixel(xx, yy, calculateDepth(data,depth),
+					data.setPixel(xx, yy, calculateDepth(data, depth),
 							RGBA.lerpA(c1, c2, c / d));
 				else
 					data.setPixel(xx, yy, (int) depth, RGB.lerp(c1, c2, c / d));
@@ -417,12 +411,15 @@ public class Display {
 			Operation op = _operations.get(i);
 			if (op.id == 0) {
 				// Vertex
+				Point3D point = (Point3D) op;
+				// point.negate();
+				// point.z *= -1;
 				if (t.p1 == null)
-					t.p1 = (Point3D) op;
+					t.p1 = point;
 				else if (t.p2 == null)
-					t.p2 = (Point3D) op;
+					t.p2 = point;
 				else {
-					t.p3 = (Point3D) op;
+					t.p3 = point;
 					t.mvp = mvp;
 					_triangles.add(t);
 					t = new Triangle();

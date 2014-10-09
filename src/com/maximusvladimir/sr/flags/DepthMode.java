@@ -11,6 +11,7 @@ public enum DepthMode {
 	PerPixel,
 	/**
 	 * Uses per-unit depth. Much faster than per-pixel. Takes the average distance of the unit (triangle, point, etc.), to gather the depth.
+	 * May cause more rendering fragments than perpixel.
 	 */
 	PerUnit
 }

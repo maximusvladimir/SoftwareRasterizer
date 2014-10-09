@@ -1,5 +1,10 @@
 package com.maximusvladimir.sr.tests;
 
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+
 import javax.swing.JFrame;
 
 import com.maximusvladimir.sr.Component3D;
@@ -16,7 +21,8 @@ public class Test extends JFrame {
 	public static void main(String[] args) {
 		new Test();
 	}
-
+float qual = 1.0f;
+float playerPos = -5;
 	public Test() {
 		setSize(800, 600);
 		setTitle("Test");
@@ -28,18 +34,62 @@ public class Test extends JFrame {
 		c.setTargettedFPS(60);
 		c.setQuality(1.0f);
 		getContentPane().add(c);
-
-		Matrix viewMatrix = new Matrix();
-		viewMatrix.setToLookAt(new Point3D(0, 0, -5), new Point3D(0, 1, 0),
-				Point3D.Up);
-		Matrix projectionMatrix = new Matrix();
-		projectionMatrix.setToPerspective(0.78f, (float) 800 / 600.0f, 0.01f,
-				10.0f);
-		c.getGL().setViewMatrix(viewMatrix);
-		c.getGL().setProjectionMatrix(projectionMatrix);
-		c.getGL().setPolygonMode(PolygonMode.Fill);
-		c.getGL().setDepthMode(DepthMode.PerPixel);
-
+		
+		addKeyListener(new KeyAdapter() {
+			public void keyPressed(KeyEvent ke) {
+				if (ke.getKeyCode() == KeyEvent.VK_F11) {
+					if (c.isFullscreen())
+						c.setFullscreen(false, 0, 0);
+					else
+						c.setFullscreen(true, 640,480);
+				}
+				if (ke.getKeyCode() == KeyEvent.VK_9) {
+					qual += 0.05f;
+					if (qual > 2)
+						qual = 2;
+					c.setQuality(qual);
+				}
+				if (ke.getKeyCode() == KeyEvent.VK_8) {
+					qual -= 0.05f;
+					if (qual <= 0)
+						qual = 0.05f;
+					c.setQuality(qual);
+				}
+				if (ke.getKeyCode() == KeyEvent.VK_S) {
+					playerPos -= 0.5f;
+					c.getGL().getViewMatrix().setToLookAt(new Point3D(0, 0, playerPos), new Point3D(0, 1, 0),
+						Point3D.Up);
+				}
+				if (ke.getKeyCode() == KeyEvent.VK_W) {
+					playerPos += 0.5f;
+					c.getGL().getViewMatrix().setToLookAt(new Point3D(0, 0, playerPos), new Point3D(0, 1, 0),
+						Point3D.Up);
+				}
+			}
+		});
+		
+		addComponentListener(new ComponentAdapter() {
+			public void componentResized(ComponentEvent arg0) {
+				c.getGL().getProjectionMatrix().setToPerspective(0.78f, ((float)c.getWidth()) / c.getHeight(), 0.01f,
+						10.0f);
+			}
+		});
+		
+		c.setInitProc(new Runnable() {
+			public void run() {
+				Matrix viewMatrix = new Matrix();
+				viewMatrix.setToLookAt(new Point3D(0, 0, playerPos), new Point3D(0, 1, 0),
+						Point3D.Up);
+				Matrix projectionMatrix = new Matrix();
+				projectionMatrix.setToPerspective(0.78f, (float) 800 / 600.0f, 0.01f,
+						10.0f);
+				c.getGL().setViewMatrix(viewMatrix);
+				c.getGL().setProjectionMatrix(projectionMatrix);
+				c.getGL().setPolygonMode(PolygonMode.Fill);
+				c.getGL().setDepthMode(DepthMode.PerPixel);
+			}
+		});
+		
 		c.setDrawLoop(new Runnable() {
 			float t = 0;
 			public void run() {
@@ -59,11 +109,11 @@ public class Test extends JFrame {
 				gl.vertex(0, -4, 10);
 				
 				gl.color(255, 0, 255);
-				gl.vertex(4, 1, 16);
+				gl.vertex(4, -1, 16);
 				gl.color(255, 255, 0);
-				gl.vertex(6, 1, 16);
+				gl.vertex(6, -1, 16);
 				gl.color(0, 255, 255);
-				gl.vertex(5, -1, 16);
+				gl.vertex(5, 1, 16);
 				
 				gl.color(RGB.getPresetRandomColor());
 				gl.vertex(-4, 1, 26);

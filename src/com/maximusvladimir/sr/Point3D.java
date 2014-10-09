@@ -47,6 +47,12 @@ public class Point3D extends Operation {
 			z *= inv;
 		}
 	}
+	
+	public void negate() {
+		x *= -1;
+		y *= -1;
+		z *= -1;
+	}
 
 	public Point3D convertTo2D(Matrix mvp,float wi, float he) {
 		Point3D vector = new Point3D();
