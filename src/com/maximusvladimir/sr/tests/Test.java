@@ -6,8 +6,10 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 
+import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 
 import com.maximusvladimir.sr.Component3D;
@@ -28,6 +30,7 @@ public class Test extends JFrame {
 	public static void main(String[] args) {
 		new Test();
 	}
+	private TestDepth depth = new TestDepth();
 	
 	float qual = 1.0f;
 	float playerPos = -5;
@@ -117,10 +120,19 @@ public class Test extends JFrame {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				t.setTextureFilter(TextureFilter.Nearest);
+				t.rotate90CW();
+				t.setTextureFilter(TextureFilter.Linear);
 				t.setTextureWrap(TextureWrap.Repeat);
 				c.getGL().createTexture(t);
 				c.getGL().setTexturesEnabled(true);
+				
+				c.getGL().createTexture(new Texture(te));
+			}
+		});
+		
+		c.setDepthRenderLoop(new Runnable() {
+			public void run() {
+				depth.setDepthBuffer(c.getDepthBuffer());
 			}
 		});
 		
@@ -141,10 +153,10 @@ public class Test extends JFrame {
 				gl.color(255, 0, 0);
 				gl.vertex(1, 1, s);
 				gl.color(0, 255, 0);
-				gl.texCoord(0,2);
+				gl.texCoord(0,20);
 				gl.vertex(-1, 1, s2);
 				gl.color(0, 0, 255);
-				gl.texCoord(2,0);
+				gl.texCoord(20,0);
 				gl.vertex(0, -4, 10);
 
 				gl.color(255, 0, 255);

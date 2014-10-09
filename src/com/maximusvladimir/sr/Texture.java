@@ -63,10 +63,40 @@ public class Texture {
 		if (_texture != null) {
 			_w = _texture.getWidth();
 			_h = _texture.getHeight();
-			_unitX = 1.0f / _w;
-			_unitY = 1.0f / _h;
+			_unitX = 1.0f / _w * 0.25f;
+			_unitY = 1.0f / _h * 0.25f;
 			if (_texture.getType() == BufferedImage.TYPE_INT_RGB)
 				_textData = ((DataBufferInt)tx.getRaster().getDataBuffer()).getData();
+		}
+	}
+	
+	public void rotate90CW() {
+		if (_textData != null) {
+			int[] cpy = new int[_textData.length];
+			System.arraycopy(_textData, 0, cpy, 0, cpy.length);
+			for (int x = 0; x < _w; x++) {
+				for (int y = 0; y < _h; y++) {
+					_textData[y * _w + x] = cpy[(_w-x-1) * _h + y];
+				}
+			}
+		}
+		else {
+			throw new RuntimeException("Unsupported operation.");
+		}
+	}
+	
+	public void rotate90CCW() {
+		if (_textData != null) {
+			int[] cpy = new int[_textData.length];
+			System.arraycopy(_textData, 0, cpy, 0, cpy.length);
+			for (int x = 0; x < _w; x++) {
+				for (int y = 0; y < _h; y++) {
+					_textData[x * _h + y] = cpy[y * _w + x];
+				}
+			}
+		}
+		else {
+			throw new RuntimeException("Unsupported operation.");
 		}
 	}
 	
@@ -120,16 +150,20 @@ public class Texture {
 		int pixy = (int)(v * (_h));
 		//System.out.println(pixx+","+pixy+","+_w);
 		if (pixx > _w-1) {
-			if (getTextureWrap() == TextureWrap.Clamp)
+			if (getTextureWrap() == TextureWrap.Clear)
 				return null;
-			else
+			else if (getTextureWrap() == TextureWrap.Repeat)
 				pixx = (pixx % (_w));
+			else
+				pixx = _w-1;
 		}
 		if (pixy > _h-1) {
-			if (getTextureWrap() == TextureWrap.Clamp)
+			if (getTextureWrap() == TextureWrap.Clear)
 				return null;
-			else
+			else if (getTextureWrap() == TextureWrap.Repeat)
 				pixy = (pixy % (_h));
+			else
+				pixy = _h-1;
 		}
 		//System.out.println(pixx+","+pixy);
 		if (_textData != null) {

@@ -48,6 +48,9 @@ public class Component3D extends Component {
 	private GL _gl;
 	private Runnable _drawLoop = null;
 	private Runnable _initLoop = null;
+	private Runnable _depthBuffer = null;
+	private Thread _depthBufferState;
+	private Object _dephtBufferStateLock = new Object();
 	private BufferedImage _lastGoodImage;
 	private ImageData _bufferData;
 	private long _lastMove = 0;
@@ -102,6 +105,9 @@ public class Component3D extends Component {
 					long start = System.nanoTime();
 					_isInRender.set(true);
 					render(_buffer.getGraphics());
+					synchronized (_dephtBufferStateLock) {
+						_dephtBufferStateLock.notify();
+					}
 					//_lastGoodImage = deepCopy(_depth);
 					_lastGoodImage = deepCopy(_buffer);
 					_isInRender.set(false);
@@ -122,6 +128,24 @@ public class Component3D extends Component {
 		renderThread.setName("render");
 		renderThread.setPriority(Thread.MAX_PRIORITY);
 		renderThread.start();
+		
+		_depthBufferState = new Thread(new Runnable() {
+			public void run() {
+				while (true) {
+					if (getDepthRenderLoop() != null)
+						getDepthRenderLoop().run();
+					try {
+						synchronized (_dephtBufferStateLock) {
+							_dephtBufferStateLock.wait();
+						}
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		});
+		_depthBufferState.setName("depthbufferpoll");
+		_depthBufferState.start();
 
 		java.util.Timer t = new java.util.Timer();
 		t.schedule(new java.util.TimerTask() {
@@ -249,6 +273,18 @@ public class Component3D extends Component {
 	public Runnable getDrawLoop() {
 		return _drawLoop;
 	}
+	
+	public void setDepthRenderLoop(Runnable loop) {
+		_depthBuffer = loop;
+	}
+	
+	public Runnable getDepthRenderLoop() {
+		return _depthBuffer;
+	}
+	
+	public BufferedImage getDepthBuffer() {
+		return _depth;
+	}
 
 	public void setTargettedFPS(int fps) {
 		_logicUpdater.setDelay((int) (1000.0 / fps));
@@ -256,6 +292,10 @@ public class Component3D extends Component {
 
 	public int getTargettedFPS() {
 		return (int) (1000.0 / _logicUpdater.getDelay());
+	}
+	
+	public long getCurrentFrame() {
+		return _currentFrame;
 	}
 
 	public void setFPSVisible(boolean v) {
