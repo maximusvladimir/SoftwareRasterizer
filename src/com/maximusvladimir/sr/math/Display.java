@@ -282,6 +282,7 @@ public class Display {
 			if (xs < 0)
 				xs = 0;
 			float den = x2 - x1;
+			boolean istransvalid = img.activeTex != null && img.activeTex.getTransparentColor() != null;
 			while (xs < xe) {
 				float t = (xs - x1) / den;
 				float it = 1 - t;
@@ -293,6 +294,10 @@ public class Display {
 					float tu = (it * tcU1 + t * tcU2);
 					float tv = (it * tcV1 + t * tcV2);
 					col = img.activeTex.lookup(tu, tv);
+					if (istransvalid && col.rgb() == img.activeTex.getTransparentColor().rgb()) {
+						xs++;
+						continue;
+					}
 				}
 				if (img.depthMode == DepthMode.PerPixel) {
 					int depth = calculateDepth(img,
@@ -398,6 +403,7 @@ public class Display {
 			if (xs < 0)
 				xs = 0;
 			float den = x2 - x1;
+			boolean istransvalid = img.activeTex != null && img.activeTex.getTransparentColor() != null;
 			while (xs < xe) {
 				float t = (xs - x1) / den;
 				float it = 1 - t;
@@ -411,6 +417,10 @@ public class Display {
 					float tv = (it * tcV1 + t * tcV2);
 					//System.out.println(tu + "," + tv);
 					col = img.activeTex.lookup(tu, tv);
+					if (istransvalid && col.rgb() == img.activeTex.getTransparentColor().rgb()) {
+						xs++;
+						continue;
+					}
 					//if (col.rgb() == -1)
 					//	trans = true;
 				}

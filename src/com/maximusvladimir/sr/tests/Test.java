@@ -120,6 +120,7 @@ public class Test extends JFrame {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
+				t.setTransparentColor(new RGB(195,195,195));
 				t.rotate90CW();
 				t.setTextureFilter(TextureFilter.Linear);
 				t.setTextureWrap(TextureWrap.Repeat);

@@ -25,6 +25,7 @@ public class Texture {
 	private float _unitX;
 	private float _unitY;
 	private int _lastGoodColor = RGB.White.rgb();
+	private RGB _transparencyKey = null;
 	public Texture() {
 		this((BufferedImage)null);
 	}
@@ -43,6 +44,14 @@ public class Texture {
 	
 	public Texture(ImageInputStream input) throws IOException {
 		this(setRightType(ImageIO.read(input)));
+	}
+	
+	public void setTransparentColor(RGB c) {
+		_transparencyKey = c;
+	}
+	
+	public RGB getTransparentColor() {
+		return _transparencyKey;
 	}
 	
 	private static BufferedImage setRightType(BufferedImage b) {
