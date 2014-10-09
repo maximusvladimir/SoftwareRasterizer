@@ -17,6 +17,7 @@ import com.maximusvladimir.sr.TextureCoord;
 import com.maximusvladimir.sr.Tuple4;
 import com.maximusvladimir.sr.VertexData;
 import com.maximusvladimir.sr.flags.DepthMode;
+import com.maximusvladimir.sr.flags.FogMode;
 import com.maximusvladimir.sr.flags.TextureBlending;
 
 public class Display {
@@ -369,7 +370,7 @@ public class Display {
 						xs++;
 						continue;
 					}
-					if (img.gl.getFogEnabled()
+					if (img.gl.getFogMode() != FogMode.NoFog
 							&& img.gl.getFogEquation() != null)
 						col = RGB.lerp(col, img.gl.getFogColor(), img.gl
 								.getFogEquation().calculateFog(act));
@@ -527,7 +528,6 @@ public class Display {
 				if (img.gl.isTexturingEnabled() && hasImage) {
 					float tu = (it * tcU1 + t * tcU2);
 					float tv = (it * tcV1 + t * tcV2);
-					// System.out.println(tu + "," + tv);
 					col = img.activeTex.lookup(tu, tv);
 					if (istransvalid
 							&& col.rgb() == img.activeTex.getTransparentColor()
@@ -538,8 +538,6 @@ public class Display {
 					if (blend) {
 						col = RGB.lerp(col, new RGB(rc, gc, bc), 0.5f);
 					}
-					// if (col.rgb() == -1)
-					// trans = true;
 				} else {
 					col.set(rc, gc, bc);
 				}
@@ -552,14 +550,13 @@ public class Display {
 						xs++;
 						continue;
 					}
-					if (img.gl.getFogEnabled()
+					if (img.gl.getFogMode() != FogMode.NoFog
 							&& img.gl.getFogEquation() != null)
 						col = RGB.lerp(col, img.gl.getFogColor(), img.gl
 								.getFogEquation().calculateFog(act));
 					img.setPixel(xs,y, depth, col);
 				} else
 					img.setPixel(xs, y, 0, col);
-				// }
 				xs++;
 			}
 			x1 += slope1;

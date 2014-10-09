@@ -7,6 +7,7 @@ import java.util.HashMap;
 
 import com.maximusvladimir.sr.ext.fog.IFogEquation;
 import com.maximusvladimir.sr.flags.DepthMode;
+import com.maximusvladimir.sr.flags.FogMode;
 import com.maximusvladimir.sr.flags.PolygonMode;
 import com.maximusvladimir.sr.math.Display;
 import com.maximusvladimir.sr.math.ImageData;
@@ -25,11 +26,13 @@ public class GL {
 	private float _fogBegin = 0;
 	private float _fogEnd = 0;
 	private RGB _fogColor = RGB.Gray;
-	private boolean _fogEnabled = false;
+	private FogMode _fogMode = FogMode.NoFog;
 	private boolean _texturingEnabled = false;
 	private long _threadId;
 	private IFogEquation _fogEquation;
 	private int _currentTextureCounter = 0;
+	private int _trianglesOccludedByFog = 0;
+	private int _trianglesOccludedByDistance = 0;
 	private HashMap<Integer,Texture> _textures = new HashMap<Integer,Texture>();
 	
 	GL(long threadId) {
@@ -46,12 +49,20 @@ public class GL {
 		img.zfar = getProjectionMatrix().Zfar;
 		img.lastGoodColor = RGB.White;
 		img.depthMode = getDepthMode();
+		
+		if (getFogMode() == FogMode.ClearBackground) {
+			img.g.setColor(getFogColor().asJavaAwtColor());
+			img.g.fillRect(0, 0, img.w, img.h);
+		}
+		
 		Display.convertOperationsToTriangles(this,_operations, _triangles);
 		_operations.clear();
 		ArrayList<java.awt.Polygon> _depthPolygons = new ArrayList<java.awt.Polygon>();
 		for (int i = 0; i < _lists.size(); i++) {
 			_triangles.addAll(_lists.get(i).getData());
 		}
+		int occlFog = 0;
+		int occlDis = 0;
 		for (int i = 0; i < _triangles.size(); i++) {
 			Triangle t = _triangles.get(i);
 			Matrix mvp = t.mvp;
@@ -65,8 +76,14 @@ public class GL {
 			Point3D pn1 = p1.asPoint();
 			Point3D pn2 = p2.asPoint();
 			Point3D pn3 = p3.asPoint();
-			if (p1.w <= 0 && p2.w <= 0 && p3.w <= 0)
+			if (p1.w <= 0 && p2.w <= 0 && p3.w <= 0) {
+				occlDis++;
 				continue;
+			}
+			if (getFogMode() == FogMode.ClearBackground && getFogEquation() != null && getFogEquation().calculateFog(p1.w) >= 1 && getFogEquation().calculateFog(p2.w) >= 1 && getFogEquation().calculateFog(p3.w) >= 1) {
+				occlFog++;
+				continue;
+		}
 			if (_polyMode == PolygonMode.Fill) {
 				Graphics g = img.g;
 				g.setColor(img.lastGoodColor.asJavaAwtColor());
@@ -123,6 +140,8 @@ public class GL {
 				Display.drawLerpLine(img, pn1, pn3, t.c1, t.c3);
 			}
 		}
+		_trianglesOccludedByFog = occlFog;
+		_trianglesOccludedByDistance = occlDis;
 	}
 	
 	private long getGLThread() {
@@ -228,13 +247,13 @@ public class GL {
 		return _pointSize;
 	}
 	
-	public void setFogEnabled(boolean fog) {
+	public void setFogMode(FogMode mode) {
 		checkThrowBadThread();
-		_fogEnabled = fog;
+		_fogMode = mode;
 	}
 	
-	public boolean getFogEnabled() {
-		return _fogEnabled;
+	public FogMode getFogMode() {
+		return _fogMode;
 	}
 
 	public void setViewMatrix(Matrix viewMatrix) {
@@ -262,6 +281,14 @@ public class GL {
 
 	public PolygonMode getPolygonMode() {
 		return _polyMode;
+	}
+	
+	public int getTrianglesHiddenByFog() {
+		return _trianglesOccludedByFog;
+	}
+	
+	public int getTrianglesHiddenByDistance() {
+		return _trianglesOccludedByDistance;
 	}
 
 	public void modelMatrix(Matrix model) {

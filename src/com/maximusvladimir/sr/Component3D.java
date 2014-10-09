@@ -385,6 +385,8 @@ public class Component3D extends Component {
 			g.drawString("FPS:" + _lastFramesDrawn, 0, 10);
 			g.drawString("Frame time: " + _frameTime + " ms", 0, 20);
 			g.drawString("Real frame time: " + _realFrameTime + " ms", 0, 30);
+			g.drawString("Triangles hidden by fog: " + _gl.getTrianglesHiddenByFog(), 0, 40);
+			g.drawString("Triangles hidden by distance: " + _gl.getTrianglesHiddenByDistance(), 0, 50);
 		}
 	}
 }

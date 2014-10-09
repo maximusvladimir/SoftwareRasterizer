@@ -19,6 +19,7 @@ import com.maximusvladimir.sr.RGB;
 import com.maximusvladimir.sr.Texture;
 import com.maximusvladimir.sr.ext.fog.LinearFog;
 import com.maximusvladimir.sr.flags.DepthMode;
+import com.maximusvladimir.sr.flags.FogMode;
 import com.maximusvladimir.sr.flags.PolygonMode;
 import com.maximusvladimir.sr.flags.TextureBlending;
 import com.maximusvladimir.sr.flags.TextureFilter;
@@ -106,7 +107,7 @@ public class Test extends JFrame {
 				c.getGL().setPolygonMode(PolygonMode.Fill);
 				c.getGL().setDepthMode(DepthMode.PerPixel);
 				c.getGL().setFogEquation(new LinearFog());
-				c.getGL().setFogEnabled(true);
+				c.getGL().setFogMode(FogMode.ClearBackground);
 				
 				BufferedImage te = new BufferedImage(32,32,BufferedImage.TYPE_INT_RGB);
 				Graphics g = te.getGraphics();
@@ -189,7 +190,6 @@ public class Test extends JFrame {
 				
 				gl.color(RGB.getPresetRandomColor());
 				gl.vertex(-4, 1, 26);
-				gl.texCoord(0,1);
 				gl.color(RGB.getPresetRandomColor());
 				gl.vertex(-6, 1, 26);
 				gl.color(RGB.getPresetRandomColor());
