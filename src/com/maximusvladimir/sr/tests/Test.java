@@ -100,13 +100,17 @@ public class Test extends JFrame {
 				
 				BufferedImage te = new BufferedImage(32,32,BufferedImage.TYPE_INT_RGB);
 				Graphics g = te.getGraphics();
-				g.setColor(java.awt.Color.red);
-				g.fillRect(0, 0, 32, 32);
-				g.setColor(java.awt.Color.green);
-				g.drawLine(0, 0, 32, 32);
+				g.setColor(java.awt.Color.white);
+				g.fillRect(0, 0, te.getWidth()+1,te.getHeight()+1);
+				for (int x = 0; x < te.getWidth();x++) {
+					for (int y = x%2; y < te.getHeight();y+=2) {
+						g.setColor(java.awt.Color.black);
+						g.drawLine(x,y,x,y);
+					}
+				}
 				
 				Texture t = new Texture(te);
-				t.setTextureFilter(TextureFilter.Linear);
+				t.setTextureFilter(TextureFilter.Nearest);
 				t.setTextureWrap(TextureWrap.Repeat);
 				c.getGL().createTexture(t);
 				c.getGL().setTexturesEnabled(true);
@@ -130,10 +134,10 @@ public class Test extends JFrame {
 				gl.color(255, 0, 0);
 				gl.vertex(1, 1, s);
 				gl.color(0, 255, 0);
-				gl.texCoord(0,20);
+				gl.texCoord(0,2);
 				gl.vertex(-1, 1, s2);
 				gl.color(0, 0, 255);
-				gl.texCoord(10,0);
+				gl.texCoord(2,0);
 				gl.vertex(0, -4, 10);
 
 				gl.color(255, 0, 255);

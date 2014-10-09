@@ -15,6 +15,7 @@ public class Texture {
 	private int _h;
 	private float _unitX;
 	private float _unitY;
+	private int _lastGoodColor = RGB.White.rgb();
 	public Texture() {
 		this(null);
 	}
@@ -77,29 +78,33 @@ public class Texture {
 	}
 	
 	private RGB internalLookup(float u, float v) {
-		int pixx = (int)(u * _w);
-		int pixy = (int)(v * _h);
-		if (pixx > _w - 1) {
+		int pixx = (int)(u * (_w));
+		int pixy = (int)(v * (_h));
+		//System.out.println(pixx+","+pixy+","+_w);
+		if (pixx > _w-1) {
 			if (getTextureWrap() == TextureWrap.Clamp)
 				return null;
 			else
-				pixx = pixx % _w;
+				pixx = (pixx % (_w));
 		}
-		if (pixy > _h - 1) {
+		if (pixy > _h-1) {
 			if (getTextureWrap() == TextureWrap.Clamp)
 				return null;
 			else
-				pixy = pixy % _h;
+				pixy = (pixy % (_h));
 		}
-		
+		//System.out.println(pixx+","+pixy);
 		if (_textData != null) {
-			int det = pixy * _texture.getWidth() + pixx;
-			if (det > 0 && det < _textData.length)
-				return new RGB(_textData[det]);
+			int det = (int)pixy * _texture.getWidth() + (int)pixx;
+			if (det >= 0 && det < _textData.length) {
+				int c = _textData[det];
+				_lastGoodColor = c;
+				return new RGB(c);
+			}
 			else
-				return RGB.Black;
+				return new RGB(_lastGoodColor);
 		}
 		else
-			return new RGB(_texture.getRGB(pixx, pixy));
+			return new RGB(_texture.getRGB((int)pixx, (int)pixy));
 	}
 }
