@@ -6,6 +6,7 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 
 import javax.swing.JFrame;
 
@@ -109,7 +110,13 @@ public class Test extends JFrame {
 					}
 				}
 				
-				Texture t = new Texture(te);
+				//Texture t = new Texture(te);
+				Texture t = null;
+				try {
+					t = new Texture(Test.class.getResource("dummy.png"));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 				t.setTextureFilter(TextureFilter.Nearest);
 				t.setTextureWrap(TextureWrap.Repeat);
 				c.getGL().createTexture(t);

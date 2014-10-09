@@ -1,7 +1,16 @@
 package com.maximusvladimir.sr;
 
+import java.awt.Color;
+import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+
+import javax.imageio.ImageIO;
+import javax.imageio.stream.ImageInputStream;
 
 import com.maximusvladimir.sr.flags.TextureFilter;
 import com.maximusvladimir.sr.flags.TextureWrap;
@@ -17,7 +26,36 @@ public class Texture {
 	private float _unitY;
 	private int _lastGoodColor = RGB.White.rgb();
 	public Texture() {
-		this(null);
+		this((BufferedImage)null);
+	}
+	
+	public Texture(File input) throws IOException {
+		this(setRightType(ImageIO.read(input)));
+	}
+	
+	public Texture(URL input) throws IOException {
+		this(setRightType(ImageIO.read(input)));
+	}
+	
+	public Texture(InputStream input) throws IOException {
+		this(setRightType(ImageIO.read(input)));
+	}
+	
+	public Texture(ImageInputStream input) throws IOException {
+		this(setRightType(ImageIO.read(input)));
+	}
+	
+	private static BufferedImage setRightType(BufferedImage b) {
+		if (b != null) {
+			BufferedImage cpy = new BufferedImage(b.getWidth(),b.getHeight(),BufferedImage.TYPE_INT_RGB);
+			Graphics g = cpy.getGraphics();
+			g.setColor(Color.black);
+			g.fillRect(0, 0, b.getWidth(),b.getHeight());
+			g.drawImage(b, 0, 0, null);
+			g.dispose();
+			return cpy;
+		}
+		return null;
 	}
 	
 	public Texture(BufferedImage tx) {

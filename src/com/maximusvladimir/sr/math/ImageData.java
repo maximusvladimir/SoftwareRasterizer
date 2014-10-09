@@ -26,7 +26,7 @@ public class ImageData {
 	public void setPixel(int x, int y,int z, RGB c) {
 		//System.out.println(z);
 		int div = y * w + x;
-		if (data != null && div > 0 && div < data.length - 1) {
+		if (data != null && div > 0 && div < data.length) {
 			//c = RGB.lerp(RGB.Black,c,z/255.0f);
 			int sampler = new RGB(z,z,z).rgb();
 			if (zbuffer != null && zbuffer[div] > sampler)
