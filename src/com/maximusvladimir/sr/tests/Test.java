@@ -20,6 +20,7 @@ import com.maximusvladimir.sr.Texture;
 import com.maximusvladimir.sr.ext.fog.LinearFog;
 import com.maximusvladimir.sr.flags.DepthMode;
 import com.maximusvladimir.sr.flags.PolygonMode;
+import com.maximusvladimir.sr.flags.TextureBlending;
 import com.maximusvladimir.sr.flags.TextureFilter;
 import com.maximusvladimir.sr.flags.TextureWrap;
 import com.maximusvladimir.sr.math.Matrix;
@@ -34,6 +35,8 @@ public class Test extends JFrame {
 	
 	float qual = 1.0f;
 	float playerPos = -5;
+	private TextureBlending blend = TextureBlending.JustTexture;
+	private Texture tex;
 	
 	public Test() {
 		setSize(800, 600);
@@ -76,6 +79,12 @@ public class Test extends JFrame {
 					playerPos += 0.5f;
 					c.getGL().getViewMatrix().setToLookAt(new Point3D(0, 0, playerPos), new Point3D(0, 1, 0),
 						Point3D.Up);
+				}
+				if (ke.getKeyCode() == KeyEvent.VK_B) {
+					if (blend == TextureBlending.JustTexture)
+						blend = TextureBlending.BlendWithColor;
+					else
+						blend = TextureBlending.JustTexture;
 				}
 			}
 		});
@@ -120,6 +129,7 @@ public class Test extends JFrame {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
+				tex = t;
 				t.setTransparentColor(new RGB(195,195,195));
 				t.rotate90CW();
 				t.setTextureFilter(TextureFilter.Linear);
@@ -146,6 +156,8 @@ public class Test extends JFrame {
 				float s = (float)(Math.cos(t)) * 2;
 				float s2 = (float)(Math.sin(t)) * 2;
 				t += 0.04f;
+				
+				tex.setTextureBlending(blend);
 				
 				gl.modelMatrix(model);
 				

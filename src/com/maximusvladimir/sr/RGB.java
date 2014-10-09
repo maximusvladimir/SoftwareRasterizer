@@ -165,7 +165,15 @@ public class RGB extends Operation {
 
 	public RGB(int r, int g, int b) {
 		id = 1;
+		set(r,g,b);
+	}
+	
+	public void set(int r,int g, int b) {
 		rgb = (r << 16) | (g << 8) | b;
+	}
+	
+	public void set(int rgb) {
+		this.rgb = rgb;
 	}
 
 	private static ArrayList<RGB> _staticColors = null;

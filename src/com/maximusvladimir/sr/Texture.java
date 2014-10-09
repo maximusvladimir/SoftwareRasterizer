@@ -12,6 +12,7 @@ import java.net.URL;
 import javax.imageio.ImageIO;
 import javax.imageio.stream.ImageInputStream;
 
+import com.maximusvladimir.sr.flags.TextureBlending;
 import com.maximusvladimir.sr.flags.TextureFilter;
 import com.maximusvladimir.sr.flags.TextureWrap;
 
@@ -19,6 +20,7 @@ public class Texture {
 	private BufferedImage _texture;
 	private TextureFilter _filter = TextureFilter.Nearest;
 	private TextureWrap _wrap = TextureWrap.Clamp;
+	private TextureBlending _blend = TextureBlending.JustTexture;
 	private int[] _textData;
 	private int _w;
 	private int _h;
@@ -44,14 +46,6 @@ public class Texture {
 	
 	public Texture(ImageInputStream input) throws IOException {
 		this(setRightType(ImageIO.read(input)));
-	}
-	
-	public void setTransparentColor(RGB c) {
-		_transparencyKey = c;
-	}
-	
-	public RGB getTransparentColor() {
-		return _transparencyKey;
 	}
 	
 	private static BufferedImage setRightType(BufferedImage b) {
@@ -112,6 +106,22 @@ public class Texture {
 	void delete() {
 		_textData = null;
 		_texture.flush();
+	}
+	
+	public void setTransparentColor(RGB c) {
+		_transparencyKey = c;
+	}
+	
+	public RGB getTransparentColor() {
+		return _transparencyKey;
+	}
+	
+	public void setTextureBlending(TextureBlending blend) {
+		_blend = blend;
+	}
+	
+	public TextureBlending getTextureBlending() {
+		return _blend;
 	}
 	
 	public void setTextureFilter(TextureFilter filter) {
