@@ -59,9 +59,14 @@ public class GL {
 				mvp = Matrix.mul(
 						Matrix.mul(t.list.getModelMatrix(), getViewMatrix()),
 						getProjectionMatrix());
-			Point3D p1 = t.p1.convertTo2D(mvp, img.w, img.h);
-			Point3D p2 = t.p2.convertTo2D(mvp, img.w, img.h);
-			Point3D p3 = t.p3.convertTo2D(mvp, img.w, img.h);
+			Tuple4 p1 = t.p1.convertTo2D(mvp, img.w, img.h);
+			Tuple4 p2 = t.p2.convertTo2D(mvp, img.w, img.h);
+			Tuple4 p3 = t.p3.convertTo2D(mvp, img.w, img.h);
+			Point3D pn1 = p1.asPoint();
+			Point3D pn2 = p2.asPoint();
+			Point3D pn3 = p3.asPoint();
+			if (p1.w <= 0 && p2.w <= 0 && p3.w <= 0)
+				continue;
 			if (_polyMode == PolygonMode.Fill) {
 				Graphics g = img.g;
 				g.setColor(img.lastGoodColor.asJavaAwtColor());
@@ -105,17 +110,17 @@ public class GL {
 				}
 				_lists.clear();
 			} else if (_polyMode == PolygonMode.Line) {
-				Display.drawLine(img, p1, p2, t.c1, t.c2);
-				Display.drawLine(img, p3, p2, t.c3, t.c2);
-				Display.drawLine(img, p1, p3, t.c1, t.c3);
+				Display.drawLine(img, pn1, pn2, t.c1, t.c2);
+				Display.drawLine(img, pn3, pn2, t.c3, t.c2);
+				Display.drawLine(img, pn1, pn3, t.c1, t.c3);
 			} else if (_polyMode == PolygonMode.Point) {
-				Display.drawPoint(img, _pointSize, p1, t.c1);
-				Display.drawPoint(img, _pointSize, p2, t.c2);
-				Display.drawPoint(img, _pointSize, p3, t.c3);
+				Display.drawPoint(img, _pointSize, pn1, t.c1);
+				Display.drawPoint(img, _pointSize, pn2, t.c2);
+				Display.drawPoint(img, _pointSize, pn3, t.c3);
 			} else if (_polyMode == PolygonMode.LerpLine) {
-				Display.drawLerpLine(img, p1, p2, t.c1, t.c2);
-				Display.drawLerpLine(img, p2, p3, t.c2, t.c3);
-				Display.drawLerpLine(img, p1, p3, t.c1, t.c3);
+				Display.drawLerpLine(img, pn1, pn2, t.c1, t.c2);
+				Display.drawLerpLine(img, pn2, pn3, t.c2, t.c3);
+				Display.drawLerpLine(img, pn1, pn3, t.c1, t.c3);
 			}
 		}
 	}

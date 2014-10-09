@@ -37,6 +37,7 @@ public class Test extends JFrame {
 	float playerPos = -5;
 	private TextureBlending blend = TextureBlending.JustTexture;
 	private Texture tex;
+	float delt = 0;
 	
 	public Test() {
 		setSize(800, 600);
@@ -72,13 +73,9 @@ public class Test extends JFrame {
 				}
 				if (ke.getKeyCode() == KeyEvent.VK_S) {
 					playerPos -= 0.5f;
-					c.getGL().getViewMatrix().setToLookAt(new Point3D(0, 0, playerPos), new Point3D(0, 1, 0),
-						Point3D.Up);
 				}
 				if (ke.getKeyCode() == KeyEvent.VK_W) {
 					playerPos += 0.5f;
-					c.getGL().getViewMatrix().setToLookAt(new Point3D(0, 0, playerPos), new Point3D(0, 1, 0),
-						Point3D.Up);
 				}
 				if (ke.getKeyCode() == KeyEvent.VK_B) {
 					if (blend == TextureBlending.JustTexture)
@@ -99,7 +96,7 @@ public class Test extends JFrame {
 		c.setInitProc(new Runnable() {
 			public void run() {
 				Matrix viewMatrix = new Matrix();
-				viewMatrix.setToLookAt(new Point3D(0, 0, playerPos), new Point3D(0, 1, 0),
+				viewMatrix.setToLookAt(new Point3D((float)Math.cos(delt)*playerPos, 0, (float)Math.sin(delt)*playerPos), new Point3D(0, 1, 0),
 						Point3D.Up);
 				Matrix projectionMatrix = new Matrix();
 				projectionMatrix.setToPerspective(0.78f, (float) 800 / 600.0f, 0.01f,
@@ -133,7 +130,7 @@ public class Test extends JFrame {
 				t.setTransparentColor(new RGB(195,195,195));
 				t.rotate90CW();
 				t.setTextureFilter(TextureFilter.Linear);
-				t.setTextureWrap(TextureWrap.Clear);
+				t.setTextureWrap(TextureWrap.Repeat);
 				c.getGL().createTexture(t);
 				c.getGL().setTexturesEnabled(true);
 				
@@ -151,11 +148,15 @@ public class Test extends JFrame {
 			float t = 0;
 			public void run() {
 				GL gl = c.getGL();
+				delt += 0.05f;
 				Matrix model = new Matrix();
 				model.setToTranslation(Point3D.Zero);
 				float s = (float)(Math.cos(t)) * 2;
 				float s2 = (float)(Math.sin(t)) * 2;
 				t += 0.04f;
+				
+				c.getGL().getViewMatrix().setToLookAt(new Point3D(0,0, playerPos), new Point3D(0, 1, 0),
+						Point3D.Up);
 				
 				tex.setTextureBlending(blend);
 				gl.getTexture(1).setTextureBlending(blend);

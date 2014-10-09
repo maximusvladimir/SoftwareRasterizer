@@ -12,7 +12,7 @@ public class BasicTextureShader extends Shader<ShaderResult> {
 	private ShaderResult result = new ShaderResult();
 	public ShaderResult vertex(Matrix mvp, Point3D vertex, RGB color, Normal normal,
 			TextureCoord coord) {
-		result.position = vertex.convertTo2D(mvp, mvp.Width, mvp.Height);
+		//result.position = vertex.convertTo2D(mvp, mvp.Width, mvp.Height);
 		result.textureCoordinate = coord;
 		return result;
 	}

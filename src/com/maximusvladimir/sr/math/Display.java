@@ -14,6 +14,7 @@ import com.maximusvladimir.sr.RGB;
 import com.maximusvladimir.sr.RGBA;
 import com.maximusvladimir.sr.Texture;
 import com.maximusvladimir.sr.TextureCoord;
+import com.maximusvladimir.sr.Tuple4;
 import com.maximusvladimir.sr.VertexData;
 import com.maximusvladimir.sr.flags.DepthMode;
 import com.maximusvladimir.sr.flags.TextureBlending;
@@ -120,7 +121,9 @@ public class Display {
 		// TODO
 		// TODO
 		// TODO
-		Point3D vswap;
+		if (d1.p.z < 1 || d2.p.z < 1 || d3.p.z < 1)
+			return;
+		Tuple4 vswap;
 		RGB cTmp;
 		VertexData swp;
 		if (d1.p.y > d2.p.y) {
@@ -146,9 +149,9 @@ public class Display {
 			float d2sd1 = d2.p.y - d1.p.y;
 			float d3sd1 = d3.p.y - d1.p.y;
 			float d2sd1Dd3sd1 = d2sd1 / d3sd1;
-			vswap = new Point3D(
+			vswap = new Tuple4(
 					(int) (d1.p.x + d2sd1Dd3sd1 * (d3.p.x - d1.p.x)), d2.p.y,
-					d2.p.z);
+					d2.p.z,d2.p.w);
 
 			float tcU = d1.t.u() + d2sd1Dd3sd1 * (d3.t.u() - d1.t.u());
 			float tcV = d1.t.v() + d2sd1Dd3sd1 * (d3.t.v() - d1.t.v());
@@ -157,8 +160,10 @@ public class Display {
 			float cRed = d1.c.r() + d2sd1Dd3sd1 * (d3.c.r() - d1.c.r());
 			float cGreen = d1.c.g() + d2sd1Dd3sd1 * (d3.c.g() - d1.c.g());
 			float cDepth = d1.p.z + d2sd1Dd3sd1 * (d3.p.z - d1.p.z);
+			float cDepthW = d1.p.w + d2sd1Dd3sd1 * (d3.p.w - d1.p.w);
 			cTmp = new RGB((int) cRed, (int) cGreen, (int) cBlue);
 			vswap.z = cDepth;
+			vswap.w = cDepthW;
 			_structSwap.c = cTmp;
 			_structSwap.p = vswap;
 			_structSwap.t = new TextureCoord(tcU, tcV);
@@ -188,9 +193,11 @@ public class Display {
 		float x2 = d3.p.x + 0.5f;
 		boolean blend = !(img.activeTex != null && img.activeTex
 				.getTextureBlending() == TextureBlending.JustTexture);
+		boolean isDepth = img.depthMode == DepthMode.PerPixel;
 		float p1pDiff = 1.0f / (float) (d3.p.y - d1.p.y);
 		float colorSlopeBlue1 = 0;
-		float colorSlopeDepth1 = (float) (d3.p.z - d1.p.z) * p1pDiff;
+		float colorSlopeDepth1 = 0;
+		float colorSlopeDepthW1 = 0;
 		float colorSlopeRed1 = 0;
 		float colorSlopeGreen1 = 0;
 		float tcSlopeU1 = 0;
@@ -199,6 +206,10 @@ public class Display {
 			tcSlopeU1 = (float) (d3.t.u() - d1.t.u()) * p1pDiff;
 			tcSlopeV1 = (float) (d3.t.v() - d1.t.v()) * p1pDiff;
 		}
+		if (isDepth) {
+			colorSlopeDepth1 = (float) (d3.p.z - d1.p.z) * p1pDiff;
+			colorSlopeDepthW1 = (float) (d3.p.w - d1.p.w) * p1pDiff;
+		}
 		if (blend) {
 			colorSlopeBlue1 = (float) (d3.c.b() - d1.c.b()) * p1pDiff;
 			colorSlopeRed1 = (float) (d3.c.r() - d1.c.r()) * p1pDiff;
@@ -206,7 +217,8 @@ public class Display {
 		}
 		float p3pDiff = 1.0f / (float) (d3.p.y - d2.p.y);
 		float colorSlopeBlue2 = 0;
-		float colorSlopeDepth2 = (float) (d3.p.z - d2.p.z) * p3pDiff;
+		float colorSlopeDepth2 = 0;
+		float colorSlopeDepthW2 = 0;
 		float colorSlopeRed2 = 0;
 		float colorSlopeGreen2 = 0;
 		float tcSlopeU2 = 0;
@@ -214,6 +226,10 @@ public class Display {
 		if (img.gl.isTexturingEnabled()) {
 			tcSlopeU2 = (float) (d3.t.u() - d2.t.u()) * p3pDiff;
 			tcSlopeV2 = (float) (d3.t.v() - d2.t.v()) * p3pDiff;
+		}
+		if (isDepth) {
+			colorSlopeDepth2 = (float) (d3.p.z - d2.p.z) * p3pDiff;
+			colorSlopeDepthW2 = (float) (d3.p.z - d2.p.z) * p3pDiff;
 		}
 		if (blend) {
 			colorSlopeBlue2 = (float) (d3.c.b() - d2.c.b()) * p3pDiff;
@@ -236,6 +252,8 @@ public class Display {
 		}
 		float cDepth1 = d3.p.z;
 		float cDepth2 = d3.p.z;
+		float cDepthW1 = d3.p.w;
+		float cDepthW2 = d3.p.w;
 		float tcU1 = d3.t.u();
 		float tcU2 = d3.t.u();
 		float tcV1 = d3.t.v();
@@ -259,10 +277,14 @@ public class Display {
 				colorSlopeBlue2 = slopeTmp;
 			}
 
-			if (img.depthMode == DepthMode.PerPixel) {
+			if (isDepth) {
 				slopeTmp = colorSlopeDepth1;
 				colorSlopeDepth1 = colorSlopeDepth2;
 				colorSlopeDepth2 = slopeTmp;
+				
+				slopeTmp = colorSlopeDepthW1;
+				colorSlopeDepthW1 = colorSlopeDepthW2;
+				colorSlopeDepthW2 = slopeTmp;
 			}
 			if (img.gl.isTexturingEnabled()) {
 				slopeTmp = tcSlopeU1;
@@ -285,9 +307,11 @@ public class Display {
 				cGreen2 -= colorSlopeGreen2;
 				cBlue2 -= colorSlopeBlue2;
 			}
-			if (img.depthMode == DepthMode.PerPixel) {
+			if (isDepth) {
 				cDepth2 -= colorSlopeDepth2;
 				cDepth1 -= colorSlopeDepth1;
+				cDepthW2 -= colorSlopeDepthW2;
+				cDepthW1 -= colorSlopeDepthW1;
 			}
 			if (img.gl.isTexturingEnabled()) {
 				tcU1 -= tcSlopeU1;
@@ -337,13 +361,18 @@ public class Display {
 						col = RGB.lerp(col, new RGB(rc, gc, bc), 0.5f);
 				} else
 					col.set(rc, gc, bc);
-				if (img.depthMode == DepthMode.PerPixel) {
+				if (isDepth) {
 					int depth = calculateDepth(img,
 							(it * cDepth1 + t * cDepth2));
+					float act = (it * cDepthW1 + t * cDepthW2);
+					if (act <= 0) {
+						xs++;
+						continue;
+					}
 					if (img.gl.getFogEnabled()
 							&& img.gl.getFogEquation() != null)
 						col = RGB.lerp(col, img.gl.getFogColor(), img.gl
-								.getFogEquation().calculateFog(depth / 255.0f));
+								.getFogEquation().calculateFog(act));
 					img.setPixel(xs, y, depth, col);
 				} else
 					img.setPixel(xs, y, 0, col);
@@ -362,6 +391,7 @@ public class Display {
 		float x2 = d1.p.x + 0.5f;
 		boolean blend = !(img.activeTex != null && img.activeTex
 				.getTextureBlending() == TextureBlending.JustTexture);
+		boolean isDepth = img.depthMode == DepthMode.PerPixel;
 		float va2va1Diff = 1.0f / (float) (d2.p.y - d1.p.y);
 		float colorSlopeBlue1 = 0;
 		float colorSlopeRed1 = 0;
@@ -382,13 +412,21 @@ public class Display {
 		float colorSlopeBlue2 = 0;
 		float colorSlopeRed2 = 0;
 		float colorSlopeGreen2 = 0;
-		float colorSlopeDepth1 = (float) (d2.p.z - d1.p.z) * va2va1Diff;
-		float colorSlopeDepth2 = (float) (d3.p.z - d1.p.z) * va3va1Diff;
+		float colorSlopeDepth1 = 0;
+		float colorSlopeDepth2 = 0;
+		float colorSlopeDepthW1 = 0;
+		float colorSlopeDepthW2 = 0;
 		float tcSlopeU2 = 0;
 		float tcSlopeV2 = 0;
 		if (img.gl.isTexturingEnabled() && hasImage) {
 			tcSlopeU2 = (float) (d3.t.u() - d1.t.u()) * va3va1Diff;
 			tcSlopeV2 = (float) (d3.t.v() - d1.t.v()) * va3va1Diff;
+		}
+		if (isDepth) {
+			colorSlopeDepth1 = (float) (d2.p.z - d1.p.z) * va2va1Diff;
+			colorSlopeDepth2 = (float) (d3.p.z - d1.p.z) * va3va1Diff;
+			colorSlopeDepthW1 = (float) (d2.p.w - d1.p.w) * va2va1Diff;
+			colorSlopeDepthW2 = (float) (d3.p.w - d1.p.w) * va3va1Diff;
 		}
 		if (blend) {
 			colorSlopeBlue2 = (float) (d3.c.b() - d1.c.b()) * va3va1Diff;
@@ -411,6 +449,8 @@ public class Display {
 		}
 		float cDepth1 = d1.p.z;
 		float cDepth2 = d1.p.z;
+		float cDepthW1 = d1.p.w;
+		float cDepthW2 = d1.p.w;
 		float tcU1 = d1.t.u();
 		float tcU2 = d1.t.u();
 		float tcV1 = d1.t.v();
@@ -434,10 +474,14 @@ public class Display {
 				colorSlopeBlue2 = slopeTmp;
 			}
 
-			if (img.depthMode == DepthMode.PerPixel) {
+			if (isDepth) {
 				slopeTmp = colorSlopeDepth1;
 				colorSlopeDepth1 = colorSlopeDepth2;
 				colorSlopeDepth2 = slopeTmp;
+				
+				slopeTmp = colorSlopeDepthW1;
+				colorSlopeDepthW1 = colorSlopeDepthW2;
+				colorSlopeDepthW2 = slopeTmp;
 			}
 
 			if (img.gl.isTexturingEnabled() && hasImage) {
@@ -451,6 +495,8 @@ public class Display {
 			}
 		}
 		RGB col = new RGB();
+		boolean istransvalid = img.activeTex != null
+				&& img.activeTex.getTransparentColor() != null;
 		for (int y = (int) d1.p.y; y <= d2.p.y; y++) {
 			if (y > img.h || y < 0)
 				continue;
@@ -466,8 +512,6 @@ public class Display {
 			if (xs < 0)
 				xs = 0;
 			float den = x2 - x1;
-			boolean istransvalid = img.activeTex != null
-					&& img.activeTex.getTransparentColor() != null;
 			while (xs < xe) {
 				float t = (xs - x1) / den;
 				float it = 1 - t;
@@ -503,11 +547,16 @@ public class Display {
 				if (img.depthMode == DepthMode.PerPixel) {
 					int depth = calculateDepth(img,
 							(it * cDepth1 + t * cDepth2));
+					float act = (it * cDepthW1 + t * cDepthW2);
+					if (act <= 0) {
+						xs++;
+						continue;
+					}
 					if (img.gl.getFogEnabled()
 							&& img.gl.getFogEquation() != null)
 						col = RGB.lerp(col, img.gl.getFogColor(), img.gl
-								.getFogEquation().calculateFog(depth / 255.0f));
-					img.setPixel(xs, y, depth, col);
+								.getFogEquation().calculateFog(act));
+					img.setPixel(xs,y, depth, col);
 				} else
 					img.setPixel(xs, y, 0, col);
 				// }
@@ -515,15 +564,19 @@ public class Display {
 			}
 			x1 += slope1;
 			x2 += slope2;
+			if (blend) {
 			cRed1 += colorSlopeRed1;
 			cGreen1 += colorSlopeGreen1;
 			cBlue1 += colorSlopeBlue1;
 			cRed2 += colorSlopeRed2;
 			cGreen2 += colorSlopeGreen2;
 			cBlue2 += colorSlopeBlue2;
-			if (img.depthMode == DepthMode.PerPixel) {
+			}
+			if (isDepth) {
 				cDepth1 += colorSlopeDepth1;
 				cDepth2 += colorSlopeDepth2;
+				cDepthW1 += colorSlopeDepthW1;
+				cDepthW2 += colorSlopeDepthW2;
 			}
 			if (img.gl.isTexturingEnabled()) {
 				tcU1 += tcSlopeU1;

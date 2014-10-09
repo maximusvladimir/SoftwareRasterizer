@@ -1,7 +1,7 @@
 package com.maximusvladimir.sr;
 
 public class VertexData {
-	public Point3D p;
+	public Tuple4 p;
 	public TextureCoord t;
 	public RGB c;
 }
