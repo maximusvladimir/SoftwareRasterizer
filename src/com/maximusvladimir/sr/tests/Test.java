@@ -130,10 +130,10 @@ public class Test extends JFrame {
 				gl.color(255, 0, 0);
 				gl.vertex(1, 1, s);
 				gl.color(0, 255, 0);
-				gl.texCoord(0,2);
+				gl.texCoord(0,20);
 				gl.vertex(-1, 1, s2);
 				gl.color(0, 0, 255);
-				gl.texCoord(2,0);
+				gl.texCoord(10,0);
 				gl.vertex(0, -4, 10);
 
 				gl.color(255, 0, 255);

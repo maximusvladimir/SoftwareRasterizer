@@ -89,7 +89,7 @@ public class Texture {
 			if (getTextureWrap() == TextureWrap.Clamp)
 				return null;
 			else
-				pixx = pixy % _h;
+				pixy = pixy % _h;
 		}
 		
 		if (_textData != null) {
