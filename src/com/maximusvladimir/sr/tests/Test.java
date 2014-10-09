@@ -133,7 +133,7 @@ public class Test extends JFrame {
 				t.setTransparentColor(new RGB(195,195,195));
 				t.rotate90CW();
 				t.setTextureFilter(TextureFilter.Linear);
-				t.setTextureWrap(TextureWrap.Repeat);
+				t.setTextureWrap(TextureWrap.Clear);
 				c.getGL().createTexture(t);
 				c.getGL().setTexturesEnabled(true);
 				
@@ -158,9 +158,11 @@ public class Test extends JFrame {
 				t += 0.04f;
 				
 				tex.setTextureBlending(blend);
+				gl.getTexture(1).setTextureBlending(blend);
 				
 				gl.modelMatrix(model);
 				
+				//for (int i = 0; i < 100; i++) {
 				gl.bindTexture(0);
 				gl.texCoord(0,0);
 				gl.color(255, 0, 0);
@@ -171,12 +173,17 @@ public class Test extends JFrame {
 				gl.color(0, 0, 255);
 				gl.texCoord(20,0);
 				gl.vertex(0, -4, 10);
+				//}
 
+				gl.bindTexture(1);
+				gl.texCoord(0,0);
 				gl.color(255, 0, 255);
 				gl.vertex(4, -1, 16);
 				gl.color(255, 255, 0);
+				gl.texCoord(0, 0.2f);
 				gl.vertex(6, -1, 16);
 				gl.color(0, 255, 255);
+				gl.texCoord(0.2f,0);
 				gl.vertex(5, 1, 16);
 				
 				gl.color(RGB.getPresetRandomColor());
