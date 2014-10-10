@@ -34,6 +34,7 @@ public class GL {
 	private int _trianglesOccludedByFog = 0;
 	private int _trianglesOccludedByDistance = 0;
 	private HashMap<Integer,Texture> _textures = new HashMap<Integer,Texture>();
+	private ImageData _lastImageData;
 	
 	GL(long threadId) {
 		_threadId = threadId;
@@ -44,6 +45,7 @@ public class GL {
 	private VertexData _vdStruct2 = new VertexData();
 	private VertexData _vdStruct3 = new VertexData();
 	void draw(ImageData img) {
+		_lastImageData = img;
 		img.gl = this;
 		img.znear = getProjectionMatrix().Znear;
 		img.zfar = getProjectionMatrix().Zfar;
@@ -80,10 +82,11 @@ public class GL {
 				occlDis++;
 				continue;
 			}
-			if (getFogMode() == FogMode.ClearBackground && getFogEquation() != null && getFogEquation().calculateFog(p1.w) >= 1 && getFogEquation().calculateFog(p2.w) >= 1 && getFogEquation().calculateFog(p3.w) >= 1) {
+			final float fogMax = 0.02f;
+			if (getFogMode() == FogMode.ClearBackground && getFogEquation() != null && getFogEquation().calculateFog(p1.w) <= fogMax && getFogEquation().calculateFog(p2.w) <= fogMax && getFogEquation().calculateFog(p3.w) <= fogMax) {
 				occlFog++;
 				continue;
-		}
+			}
 			if (_polyMode == PolygonMode.Fill) {
 				Graphics g = img.g;
 				g.setColor(img.lastGoodColor.asJavaAwtColor());
@@ -182,6 +185,24 @@ public class GL {
 		if (_textures.containsKey(id))
 			return _textures.get(id);
 		return null;
+	}
+	
+	public Point3D unProject(int ix, int iy) {
+		if (_lastImageData == null)
+			throw new IllegalStateException("GL must draw to buffer before unProject can be used.");
+		Matrix pvi = Matrix.mul(getProjectionMatrix(), getViewMatrix());
+		pvi.inverse();
+		Point3D vector = new Point3D();
+		float wi = _lastImageData.w;
+		float hi = _lastImageData.h;
+		float x = (ix-(wi*0.5f)) / ((float)wi);
+		float y = -(iy - (hi*0.5f)) / ((float)hi);
+		vector.x = x;
+		vector.y = y;
+		vector.z = 0;
+		Matrix inv = Matrix.mul(getProjectionMatrix(),getViewMatrix());
+		inv.inverse();
+		return inv.antiProj(vector);
 	}
 	
 	public void setFogBegin(float begin) {

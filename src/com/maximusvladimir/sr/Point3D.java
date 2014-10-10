@@ -68,7 +68,7 @@ public class Point3D extends Operation {
 		Point3D point = new Point3D(x * w, y * w, vector.z * w);
 		float x = point.x * wi + wi / 2.0f;
 		float y = -point.y * he + he / 2.0f;
-		return new Tuple4(x,y,point.z,-vector.z);//Point3D(x, y, point.z);
+		return new Tuple4(x,y,point.z,-vector.z);//Point3D(x, y, point.z);	
 	}
 
 	public static Point3D normalize(Point3D p) {

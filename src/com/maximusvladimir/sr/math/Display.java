@@ -230,7 +230,7 @@ public class Display {
 		}
 		if (isDepth) {
 			colorSlopeDepth2 = (float) (d3.p.z - d2.p.z) * p3pDiff;
-			colorSlopeDepthW2 = (float) (d3.p.z - d2.p.z) * p3pDiff;
+			colorSlopeDepthW2 = (float) (d3.p.w - d2.p.w) * p3pDiff;
 		}
 		if (blend) {
 			colorSlopeBlue2 = (float) (d3.c.b() - d2.c.b()) * p3pDiff;
@@ -372,7 +372,7 @@ public class Display {
 					}
 					if (img.gl.getFogMode() != FogMode.NoFog
 							&& img.gl.getFogEquation() != null)
-						col = RGB.lerp(col, img.gl.getFogColor(), img.gl
+						col = RGB.lerp(col, img.gl.getFogColor(), 1-img.gl
 								.getFogEquation().calculateFog(act));
 					img.setPixel(xs, y, depth, col);
 				} else
@@ -524,7 +524,6 @@ public class Display {
 					gc = (int) (it * cGreen1 + t * cGreen2);
 					bc = (int) (it * cBlue1 + t * cBlue2);
 				}
-				// boolean trans = false;
 				if (img.gl.isTexturingEnabled() && hasImage) {
 					float tu = (it * tcU1 + t * tcU2);
 					float tv = (it * tcV1 + t * tcV2);
@@ -541,7 +540,6 @@ public class Display {
 				} else {
 					col.set(rc, gc, bc);
 				}
-				// if (!trans) {
 				if (img.depthMode == DepthMode.PerPixel) {
 					int depth = calculateDepth(img,
 							(it * cDepth1 + t * cDepth2));
@@ -552,7 +550,7 @@ public class Display {
 					}
 					if (img.gl.getFogMode() != FogMode.NoFog
 							&& img.gl.getFogEquation() != null)
-						col = RGB.lerp(col, img.gl.getFogColor(), img.gl
+						col = RGB.lerp(col, img.gl.getFogColor(), 1-img.gl
 								.getFogEquation().calculateFog(act));
 					img.setPixel(xs,y, depth, col);
 				} else

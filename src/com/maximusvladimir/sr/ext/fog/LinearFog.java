@@ -1,8 +1,8 @@
 package com.maximusvladimir.sr.ext.fog;
 
 public class LinearFog implements IFogEquation {
-	private float _start = 3;
-	private float _end = 7;
+	private float _start = 5;
+	private float _end = 15;
 	private float _den = 1 / (_end - _start);
 	public LinearFog() {
 		
@@ -32,7 +32,7 @@ public class LinearFog implements IFogEquation {
 	}
 	
 	public float calculateFog(float z) {
-		float res = (z - getEnd()) * _den;
+		float res = (getEnd()-z) * _den;
 		if (res < 0)
 			res = 0;
 		if (res > 1)

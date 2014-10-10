@@ -5,11 +5,11 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 
-import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 
 import com.maximusvladimir.sr.Component3D;
@@ -17,6 +17,7 @@ import com.maximusvladimir.sr.GL;
 import com.maximusvladimir.sr.Point3D;
 import com.maximusvladimir.sr.RGB;
 import com.maximusvladimir.sr.Texture;
+import com.maximusvladimir.sr.ext.HitTestHelper;
 import com.maximusvladimir.sr.ext.fog.LinearFog;
 import com.maximusvladimir.sr.flags.DepthMode;
 import com.maximusvladimir.sr.flags.FogMode;
@@ -39,6 +40,7 @@ public class Test extends JFrame {
 	private TextureBlending blend = TextureBlending.JustTexture;
 	private Texture tex;
 	float delt = 0;
+	float t6 = 0;
 	
 	public Test() {
 		setSize(800, 600);
@@ -87,6 +89,17 @@ public class Test extends JFrame {
 			}
 		});
 		
+		addMouseMotionListener(new MouseAdapter() {
+			public void mouseMoved(MouseEvent me) {
+				Point3D dir = c.getGL().unProject(me.getX(), me.getY());
+				dir.normalize();
+				float s = (float)(Math.cos(t6)) * 2;
+				float s2 = (float)(Math.sin(t6)) * 2;
+				if (HitTestHelper.doesRayHitTriangle(new Point3D(0,0,playerPos), dir, new Point3D(1, 1, s), new Point3D(-1, 1, s2),new Point3D(0, -4, 10)))
+					System.out.println("hit");
+			}
+		});
+		
 		addComponentListener(new ComponentAdapter() {
 			public void componentResized(ComponentEvent arg0) {
 				c.getGL().getProjectionMatrix().setToPerspective(0.78f, ((float)c.getWidth()) / c.getHeight(), 0.01f,
@@ -97,7 +110,7 @@ public class Test extends JFrame {
 		c.setInitProc(new Runnable() {
 			public void run() {
 				Matrix viewMatrix = new Matrix();
-				viewMatrix.setToLookAt(new Point3D((float)Math.cos(delt)*playerPos, 0, (float)Math.sin(delt)*playerPos), new Point3D(0, 1, 0),
+				viewMatrix.setToLookAt(new Point3D(0,0,playerPos), new Point3D(0, 1, 0),
 						Point3D.Up);
 				Matrix projectionMatrix = new Matrix();
 				projectionMatrix.setToPerspective(0.78f, (float) 800 / 600.0f, 0.01f,
@@ -106,7 +119,7 @@ public class Test extends JFrame {
 				c.getGL().setProjectionMatrix(projectionMatrix);
 				c.getGL().setPolygonMode(PolygonMode.Fill);
 				c.getGL().setDepthMode(DepthMode.PerPixel);
-				c.getGL().setFogEquation(new LinearFog());
+				c.getGL().setFogEquation(new LinearFog(5,35));
 				c.getGL().setFogMode(FogMode.ClearBackground);
 				
 				BufferedImage te = new BufferedImage(32,32,BufferedImage.TYPE_INT_RGB);
@@ -146,15 +159,14 @@ public class Test extends JFrame {
 		});
 		
 		c.setDrawLoop(new Runnable() {
-			float t = 0;
 			public void run() {
 				GL gl = c.getGL();
 				delt += 0.05f;
 				Matrix model = new Matrix();
 				model.setToTranslation(Point3D.Zero);
-				float s = (float)(Math.cos(t)) * 2;
-				float s2 = (float)(Math.sin(t)) * 2;
-				t += 0.04f;
+				float s = (float)(Math.cos(t6)) * 2;
+				float s2 = (float)(Math.sin(t6)) * 2;
+				t6 += 0.04f;
 				
 				c.getGL().getViewMatrix().setToLookAt(new Point3D(0,0, playerPos), new Point3D(0, 1, 0),
 						Point3D.Up);
