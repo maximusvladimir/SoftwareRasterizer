@@ -35,6 +35,7 @@ public class GL {
 	private int _trianglesOccludedByDistance = 0;
 	private HashMap<Integer,Texture> _textures = new HashMap<Integer,Texture>();
 	private ImageData _lastImageData;
+	private Texture _frameBuffer;
 	
 	GL(long threadId) {
 		_threadId = threadId;
@@ -145,6 +146,9 @@ public class GL {
 		}
 		_trianglesOccludedByFog = occlFog;
 		_trianglesOccludedByDistance = occlDis;
+		if (_frameBuffer != null) {
+			_frameBuffer.setPixels(img.data);
+		}
 	}
 	
 	private long getGLThread() {
@@ -155,7 +159,7 @@ public class GL {
 		return Thread.currentThread().getId() == getGLThread();
 	}
 	
-	private void checkThrowBadThread() {
+	void checkThrowBadThread() {
 		if (!isOnGLThread())
 			throw new RuntimeException("Attempting to access GL functions on wrong thread. Please place all drawing code inside the draw loop.");
 	}
@@ -163,6 +167,7 @@ public class GL {
 	public int createTexture(Texture t) {
 		if (t == null)
 			return -1;
+		t.setGL(this);
 		_textures.put(_currentTextureCounter, t);
 		return _currentTextureCounter++;
 	}
@@ -179,6 +184,10 @@ public class GL {
 			return true;
 		}
 		return false;
+	}
+	
+	public void setFrameBufferTarget(Texture t) {
+		_frameBuffer = t;
 	}
 	
 	public Texture getTexture(int id) {

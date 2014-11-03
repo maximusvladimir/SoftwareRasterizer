@@ -28,6 +28,7 @@ public class Texture {
 	private float _unitY;
 	private int _lastGoodColor = RGB.White.rgb();
 	private RGB _transparencyKey = null;
+	private GL _gl;
 	public Texture() {
 		this((BufferedImage)null);
 	}
@@ -138,6 +139,17 @@ public class Texture {
 	
 	public TextureWrap getTextureWrap() {
 		return _wrap;
+	}
+	
+	public void setPixels(int[] pixels) {
+		if (_gl != null)
+			_gl.checkThrowBadThread();
+		
+		System.arraycopy(pixels, 0, _textData, 0, _textData.length);
+	}
+	
+	void setGL(GL gl) {
+		_gl = gl;
 	}
 	
 	RGB lookup(TextureCoord coord) {

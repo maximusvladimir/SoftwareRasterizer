@@ -2,6 +2,7 @@ package com.maximusvladimir.sr.math;
 
 import com.maximusvladimir.sr.Operation;
 import com.maximusvladimir.sr.Point3D;
+import com.maximusvladimir.sr.Tuple4;
 
 public class Matrix extends Operation {
 	public float M11 = 0;
@@ -103,6 +104,68 @@ public class Matrix extends Operation {
 		M42 = t.y;
 		M43 = t.z;
 	}
+	
+	public void setToIdentity() {
+		M12 = M13 = M14 = M21 = M23 = M24 = M31 = M32 = M34 = M41 = M42 = M43 = 0.0f;
+		M11 = 1.0f;
+		M22 = 1.0f;
+		M33 = 1.0f;
+		M44 = 1.0f;
+	}
+	
+	public void setToRotation(float x, float y, float z, float rad) {
+		float d = new Point3D(x, y, z).length();
+		if (d == 0f) {
+			setToIdentity();
+			return;
+		}
+			
+		d = 1f / d;
+		float l_ang = rad;
+		float l_sin = (float)Math.sin(l_ang / 2);
+		float l_cos = (float)Math.cos(l_ang / 2);
+		
+		float x2 = d * x * l_sin;
+		float y2 = d * y * l_sin;
+		float z2 = d * z * l_sin;
+		float w2 = l_cos;
+		float l = 1.0f / (float)Math.sqrt(x2 * x2 + y2 * y2 + z2 * z2 + w2 * w2);
+		if (l != 0) {
+			x2 *= l;
+			y2 *= l;
+			z2 *= l;
+			w2 *= l;
+		}
+		x = x2;
+		y = y2;
+		z = z2;
+		float w = w2;
+		
+		final float xs = x * 2f, ys = y * 2f, zs = z * 2f;
+		final float wx = w * xs, wy = w * ys, wz = w * zs;
+		final float xx = x * xs, xy = x * ys, xz = x * zs;
+		final float yy = y * ys, yz = y * zs, zz = z * zs;
+
+		M11 = (1.0f - (yy + zz));
+		M12 = (xy - wz);
+		M13 = (xz + wy);
+		M14 = 0;//translationX;
+
+		M21 = (xy + wz);
+		M22 = (1.0f - (xx + zz));
+		M23 = (yz - wx);
+		M24 = 0;//translationY;
+
+		M31 = (xz - wy);
+		M32 = (yz + wx);
+		M33 = (1.0f - (xx + yy));
+		M34 = 0;//translationZ;
+
+		M41 = 0.f;
+		M42 = 0.f;
+		M43 = 0.f;
+		M44 = 1.0f;
+	}
 
 	public void setToPerspective(float width, float height, float znear,
 			float zfar) {
@@ -154,6 +217,17 @@ public class Matrix extends Operation {
 		return new Point3D((x * M11 + y * M12 + z * M13 + M14) * l_w, (x
 			* M21 + y * M22 + z * M23 + M24)
 			* l_w, (x * M31 + y * M32 + z * M33 + M34) * l_w);
+	}
+	
+	public Tuple4 project(Point3D world) {
+		float x = world.x;
+		float y = world.y;
+		float z = world.z;
+		final float l_w = 1f / (x * M41 + y * M42 + z * M43 + M44);
+		return new Tuple4((x * M11 + y * M12 + z * M13 + M14) * l_w, (x
+			* M21 + y * M22 + z * M23 + M24)
+			* l_w, (x * M31 + y * M32 + z * M33 + M34) * l_w,1);
+	
 	}
 
 	public void inverse() {
